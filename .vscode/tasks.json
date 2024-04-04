@@ -1,0 +1,437 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Chess Win64 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"Chess Win64 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"Chess Win64 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"Chess Win64 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Test Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Test",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Test Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Test",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"Chess Win64 Test Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Test Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Test",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Shipping Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Shipping",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Shipping Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Shipping",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"Chess Win64 Shipping Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "Chess Win64 Shipping Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"Chess",
+				"Win64",
+				"Shipping",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ChessEditor Win64 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Debug",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ChessEditor Win64 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"DebugGame",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ChessEditor Win64 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		},
+		{
+			"label": "ChessEditor Win64 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ChessEditor",
+				"Win64",
+				"Development",
+				"C:\\Users\\Tiber Septimus\\Documents\\Unreal Projects\\Chess\\Chess.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Epic Games\\UE_5.2"
+			}
+		}
+	]
+}

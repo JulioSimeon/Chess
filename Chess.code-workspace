@@ -1,0 +1,23 @@
+{
+  "folders": [
+    {
+      "name": "Chess",
+      "path": "."
+    },
+    {
+      "name": "UE5",
+      "path": "C:\\Epic Games\\UE_5.2"
+    }
+  ],
+  "settings": {
+    "typescript.tsc.autoDetect": "off",
+    "files.associations": {
+      "variant": "cpp",
+      "chrono": "cpp",
+      "ranges": "cpp"
+    }
+  },
+  "extensions": {
+    "recommendations": ["ms-vscode.cpptools", "ms-dotnettools.csharp"]
+  }
+}
