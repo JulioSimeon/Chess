@@ -9,66 +9,6 @@ TArray<FIntPoint> ABishopChessPiece::GetPossibleMovePositions()
     TArray<FIntPoint> PossibleMoves;
     if(ChessBoard)
     {
-        // for(i = CurrentPosition.X + 1, j = CurrentPosition.Y + 1; i < AChessBoard::BoardHeight && j < AChessBoard::BoardLength; i++, j++)
-        // {
-        //     if(!ChessBoard->IsOccupied(FIntPoint(i, j)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, j));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, j))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, j));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(i = CurrentPosition.X - 1, j = CurrentPosition.Y - 1; i >= 0 && j >= 0; i--, j--)
-        // {
-        //     if(!ChessBoard->IsOccupied(FIntPoint(i, j)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, j));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, j))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, j));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(i = CurrentPosition.X + 1, j = CurrentPosition.Y - 1; i < AChessBoard::BoardHeight && j >= 0; i++, j--)
-        // {
-        //     if(!ChessBoard->IsOccupied(FIntPoint(i, j)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, j));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, j))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, j));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(i = CurrentPosition.X - 1, j = CurrentPosition.Y + 1; i >= 0 && j < AChessBoard::BoardLength; i--, j++)
-        // {
-        //     if(!ChessBoard->IsOccupied(FIntPoint(i, j)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, j));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, j))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, j));
-        //         }
-        //         break;
-        //     }
-        // }
         const int diag = 4; // number of diagonals to check
         FIntPoint Diagonal[diag];
         Diagonal[0] = FIntPoint(CurrentPosition.X + 1, CurrentPosition.Y + 1);

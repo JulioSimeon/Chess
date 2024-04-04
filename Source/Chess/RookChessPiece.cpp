@@ -9,66 +9,6 @@ TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
     TArray<FIntPoint> PossibleMoves;
     if(ChessBoard)
     {
-        // for(int i = CurrentPosition.X + 1; i < AChessBoard::BoardHeight; i++)
-        // {
-        //     if(!ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, CurrentPosition.Y));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, CurrentPosition.Y));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(int i = CurrentPosition.X - 1; i >= 0; i--)
-        // {
-        //     if(!ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(i, CurrentPosition.Y));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(i, CurrentPosition.Y));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(int i = CurrentPosition.Y + 1; i < AChessBoard::BoardLength; i++)
-        // {
-        //     if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X, i)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(CurrentPosition.X, i));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X, i))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(CurrentPosition.X, i));
-        //         }
-        //         break;
-        //     }
-        // }
-        // for(int i = CurrentPosition.Y - 1; i >= 0; i--)
-        // {
-        //     if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X, i)))
-        //     {
-        //         PossibleMoves.Emplace(FIntPoint(CurrentPosition.X, i));
-        //     }
-        //     else
-        //     {
-        //         if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X, i))->ActorHasTag(PlayerSide))
-        //         {
-        //             PossibleMoves.Emplace(FIntPoint(CurrentPosition.X, i));
-        //         }
-        //         break;
-        //     }
-        // }
         const int direc = 4; // number of directions to check
         FIntPoint Direction[direc];
 
