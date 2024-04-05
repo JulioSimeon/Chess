@@ -25,9 +25,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UInputAction* MoveSelectedPieceAction;
-
-	UFUNCTION(BlueprintCallable)
-	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -41,6 +38,8 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName PlayerSide;
+
+	FName EnemySide;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> ValidCaptureSquare;
@@ -68,6 +67,10 @@ private:
 	void SwitchSides();
 	void BeginNextTurn();
 	void UpdateSelectedPieceLocation(FIntPoint NewIndex, ABaseChessPiece* ChessPiece);
+	bool ShouldPromotePawn();
+
+	UFUNCTION(BlueprintCallable)
+	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();

@@ -32,11 +32,10 @@ void AChessPlayerController::SelectPiece()
     {
         SelectedPiece = Cast<ABaseChessPiece>(HitResult.GetActor());
         UE_LOG(LogTemp, Display, TEXT("Actor Hit: %s"), *SelectedPiece->GetActorNameOrLabel());
+        //Display Valid Moves
+            //Call SelectedPiece.GetPossibleMovePositions() return array of possible moves, if array empty, no moves, Array of FIntPoint
         DisplayValidMoves();
-    }
-    
-    //Display Valid Moves
-        //Call SelectedPiece.GetPossibleMovePositions() return array of possible moves, if array empty, no moves, Array of FIntPoint
+    }    
 }
 
 void AChessPlayerController::MoveSelectedPiece()
@@ -48,7 +47,8 @@ void AChessPlayerController::MoveSelectedPiece()
         FHitResult HitResult;
         GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
         AActor* ChosenSquare = HitResult.GetActor();
-        if(AActor* EnemyPiece = Cast<ABaseChessPiece>(ChosenSquare))
+        AActor* EnemyPiece = Cast<ABaseChessPiece>(ChosenSquare);
+        if(EnemyPiece && EnemyPiece->ActorHasTag(EnemySide))
         {
             UE_LOG(LogTemp, Display, TEXT("EnemyPiece was selected"));
             //Check if EnemyPiece location is same as any of the validsquares
@@ -56,7 +56,6 @@ void AChessPlayerController::MoveSelectedPiece()
             AdjustedEnemyLocation.Z = 0.f;
             for(AActor* Square : ValidSquares)
             {
-                
                 if(AdjustedEnemyLocation == Square->GetActorLocation())
                 {
                     //If true then enemy is valid capture and enemy is eaten
@@ -68,7 +67,7 @@ void AChessPlayerController::MoveSelectedPiece()
         }
         if(ValidSquares.Find(ChosenSquare) != INDEX_NONE)
         {
-            if(ChessBoard && SelectedPiece)
+            if(ChessBoard)
             {
                 FIntPoint index = ChessBoard->GetIndex(ChosenSquare->GetActorLocation());
                 UE_LOG(LogTemp, Display, TEXT("Index: %s"), *index.ToString());
@@ -97,6 +96,7 @@ void AChessPlayerController::MoveSelectedPiece()
                         } 
                     }
                 }
+
                 if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
                 {
                     //En Passant Special Move
@@ -111,47 +111,29 @@ void AChessPlayerController::MoveSelectedPiece()
                         
                     }
                 }
+
                 if(index != FIntPoint(-1, -1))
                 {
-                    // //If selected square has enemy chess piece, destroy enemy chess piece
-                    // if(ChessBoard->GetChessPiece(index))
-                    // {
-                    //     ChessBoard->GetChessPiece(index)->Destroy();
-                    // }
-                    // //Set ChessBoard to chess piece of vacated position to nullptr
-                    // ChessBoard->SetChessPiece(SelectedPiece->GetCurrentPosition(), nullptr);
-                    // //Move SelectedPiece to chosen location
-                    // SelectedPiece->SetActorLocation(ChessBoard->GetLocation(index));
-                    // //Update ChessBoard to set chess piece of new location
-                    // ChessBoard->SetChessPiece(index, SelectedPiece);
-                    // //Update CurrentPosition of SelectedPiece
-                    // SelectedPiece->SetCurrentPosition(index);
-                    // UE_LOG(LogTemp, Display, TEXT("Index Valid and Chessboard and SelectedPiece are valid"));
-                    if(SelectedPiece)
-                    {
-                        UpdateSelectedPieceLocation(index, SelectedPiece);
-                    }
-                    
+                    UpdateSelectedPieceLocation(index, SelectedPiece);
                 }
-                
-                if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
+
+                //Pawn Promotion Special Move
+                //Check if Pawn has reached end of chessboard
+                if(ShouldPromotePawn())
                 {
-                    //Pawn Promotion Special Move
-                    //Check if Pawn has reached end of chessboard
-                    if(index.Y == 0 || index.Y == 7)
-                    {
-                        //Spawn Widget
-                        //User chooses which chess piece pawn will be promoted to
-                        PromotePawn();
-                        return; 
-                    }
-                }
-                     
+                    //Spawn Widget
+                    //User chooses which chess piece pawn will be promoted to
+                    PromotePawn();
+                    return; 
+                }   
             }
+            BeginNextTurn();
         }
-        
+        else
+        {
+            return;
+        }
     }
-    BeginNextTurn();
     
 }
 
@@ -206,10 +188,12 @@ void AChessPlayerController::SwitchSides()
     if(PlayerSide == "White")
 	{
 		PlayerSide = "Black";
+        EnemySide = "White";
 	}
 	else if(PlayerSide == "Black")
 	{
 		PlayerSide = "White";
+        EnemySide = "Black";
 	}
 }
 
@@ -247,6 +231,18 @@ void AChessPlayerController::UpdateSelectedPieceLocation(FIntPoint NewIndex, ABa
     UE_LOG(LogTemp, Display, TEXT("Index Valid and Chessboard and SelectedPiece are valid"));
 }
 
+bool AChessPlayerController::ShouldPromotePawn()
+{
+    if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
+    {
+        if(PawnPiece->GetCurrentPosition().Y == 0 || PawnPiece->GetCurrentPosition().Y == 7)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AChessPlayerController::SpawnPromotedPawn()
 {
     if(SelectedPiece)
@@ -270,6 +266,7 @@ void AChessPlayerController::BeginPlay()
         Subsystem->AddMappingContext(DefaultMappingContext, 0);
     }
 
+    //Initialize ChessBoard
     TArray<AActor*> ChessBoards;
     UGameplayStatics::GetAllActorsOfClass(this, AChessBoard::StaticClass(), ChessBoards);
     if(ChessBoards.Num() > 0)
@@ -277,6 +274,15 @@ void AChessPlayerController::BeginPlay()
         ChessBoard = Cast<AChessBoard>(ChessBoards[0]);
     }
 
+    //Initialize EnemySide
+    if(PlayerSide == "White")
+	{
+		EnemySide = "Black";
+	}
+	else if(PlayerSide == "Black")
+	{
+		EnemySide = "White";
+	}
 }
 
 void AChessPlayerController::SetupInputComponent()
