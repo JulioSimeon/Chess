@@ -23,6 +23,8 @@ public:
 
 	bool IsCastling() const;
 
+	bool IsChecked() const;
+
 private:
 	TArray<FIntPoint> GetPossibleMovesOfEnemyPieces() const;
 

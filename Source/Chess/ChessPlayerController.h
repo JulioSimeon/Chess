@@ -50,6 +50,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<ABaseChessPiece> PawnPromotion;
 
+	class AChessGameMode* ChessGameMode;
 
 	UPROPERTY(EditDefaultsOnly)
 	bool CoOp;
@@ -74,4 +75,8 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();
+
+	class AKingChessPiece* WhiteKing;
+	AKingChessPiece* BlackKing;
+	AKingChessPiece* PlayerKing;
 };

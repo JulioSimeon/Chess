@@ -14,7 +14,16 @@
     "files.associations": {
       "variant": "cpp",
       "chrono": "cpp",
-      "ranges": "cpp"
+      "ranges": "cpp",
+      "__bit_reference": "cpp",
+      "deque": "cpp",
+      "future": "cpp",
+      "ios": "cpp",
+      "string": "cpp",
+      "algorithm": "cpp",
+      "type_traits": "cpp",
+      "xstring": "cpp",
+      "xutility": "cpp"
     }
   },
   "extensions": {

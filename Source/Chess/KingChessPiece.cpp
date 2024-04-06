@@ -96,6 +96,19 @@ bool AKingChessPiece::IsCastling() const
     return bIsCastling;
 }
 
+bool AKingChessPiece::IsChecked() const
+{
+    TArray<FIntPoint> PossibleEnemyMoves = GetPossibleMovesOfEnemyPieces();
+    for(FIntPoint& index : PossibleEnemyMoves)
+    {
+        if(index == GetCurrentPosition())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const
 {
     TArray<FIntPoint> EnemyMoves;
@@ -105,13 +118,8 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const
     {
         if(ABaseChessPiece* Enemy = Cast<ABaseChessPiece>(EnemyPiece))
         {
-            // if(Enemy->GetPossibleMovePositionsForEnemy().Num() > 0)
-            // {
-            //     UE_LOG(LogTemp, Display, TEXT("Enemy: %s"), *Enemy->GetActorNameOrLabel());
-            // }
             EnemyMoves.Append(Enemy->GetPossibleMovePositionsForEnemy());
         }
     }
-    // UE_LOG(LogTemp, Display, TEXT("Enemy Move Count: %d"), EnemyMoves.Num());
     return EnemyMoves;
 }

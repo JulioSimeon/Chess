@@ -11,6 +11,7 @@
 #include "PawnChessPiece.h"
 #include "KingChessPiece.h"
 #include "RookChessPiece.h"
+#include "ChessGameMode.h"
 
 AChessPlayerController::AChessPlayerController()
 {
@@ -139,9 +140,95 @@ void AChessPlayerController::MoveSelectedPiece()
 
 void AChessPlayerController::DisplayValidMoves()
 {
-    TArray<FIntPoint> ValidMoves = SelectedPiece->GetPossibleMovePositions();
+    TArray<FIntPoint> ValidMoves;
+    FIntPoint OriginalIndex = SelectedPiece->GetCurrentPosition();
+    if(PlayerKing->IsChecked())
+    {
+        TArray<FIntPoint> PossibleMoves = SelectedPiece->GetPossibleMovePositions();
+        if(PossibleMoves.Num() > 0)
+        {
+            for(FIntPoint move : PossibleMoves)
+            {
+                //simulate moving selectedpiece to each possible move location
+                
+                //if move location has an enemy piece
+                if(AActor* TempActor = ChessBoard->GetChessPiece(move))
+                {
+                    if(TempActor && TempActor->ActorHasTag(EnemySide))
+                    {  
+                        SelectedPiece->SetCurrentPosition(move);
+                        //Set TempActor as not a threat
+                        TempActor->Tags[0] = PlayerSide;
+                    }
+                    //if king is no longer checked
+                    if(!PlayerKing->IsChecked())
+                    {
+                        ValidMoves.Emplace(move);
+                    }
+                    ChessBoard->GetChessPiece(move)->Tags[0] = EnemySide;
+                    SelectedPiece->SetCurrentPosition(OriginalIndex);
+                }
+                else
+                {
+                    ChessBoard->SetChessPiece(move, SelectedPiece);
+                    ChessBoard->SetChessPiece(OriginalIndex, nullptr);
+                    SelectedPiece->SetCurrentPosition(move);
+                    //if king is no longer checked
+                    if(!PlayerKing->IsChecked())
+                    {
+                        ValidMoves.Emplace(move);
+                    }
+                    //reset selectedpiece location to original index
+                    ChessBoard->SetChessPiece(OriginalIndex, SelectedPiece);
+                    ChessBoard->SetChessPiece(move, nullptr);
+                    SelectedPiece->SetCurrentPosition(OriginalIndex);
+                }
+            }
+        }
+        
+    }
+    else
+    {
+        for(FIntPoint move : SelectedPiece->GetPossibleMovePositions())
+        {
+            if(AActor* TempActor = ChessBoard->GetChessPiece(move))
+            {
+                if(TempActor && TempActor->ActorHasTag(EnemySide))
+                {  
+                    SelectedPiece->SetCurrentPosition(move);
+                    //Set TempActor as not a threat
+                    TempActor->Tags[0] = PlayerSide;
+
+                }
+                //if king will not be in check
+                if(!PlayerKing->IsChecked())
+                {
+                    ValidMoves.Emplace(move);
+                }
+                ChessBoard->GetChessPiece(move)->Tags[0] = EnemySide;
+                SelectedPiece->SetCurrentPosition(OriginalIndex);
+            }
+            else
+            {
+                ChessBoard->SetChessPiece(move, SelectedPiece);
+                ChessBoard->SetChessPiece(OriginalIndex, nullptr);
+                SelectedPiece->SetCurrentPosition(move);
+                //if king will not be in check
+                if(!PlayerKing->IsChecked())
+                {
+                    ValidMoves.Emplace(move);
+                }
+                //reset selectedpiece location to original index
+                ChessBoard->SetChessPiece(OriginalIndex, SelectedPiece);
+                ChessBoard->SetChessPiece(move, nullptr);
+                SelectedPiece->SetCurrentPosition(OriginalIndex);
+            }
+            
+        }
+        
+        
+    }
     UE_LOG(LogTemp, Display, TEXT("Possible Moves: %d"), ValidMoves.Num());
-    
     if(ValidMoves.Num() > 0)
     {
         for(const auto& location : ValidMoves)
@@ -168,6 +255,7 @@ void AChessPlayerController::DisplayValidMoves()
             }
         }
     }
+    
 }
 
 void AChessPlayerController::DeleteValidMoveSquares()
@@ -189,11 +277,13 @@ void AChessPlayerController::SwitchSides()
 	{
 		PlayerSide = "Black";
         EnemySide = "White";
+        PlayerKing = BlackKing;
 	}
 	else if(PlayerSide == "Black")
 	{
 		PlayerSide = "White";
         EnemySide = "Black";
+        PlayerKing = WhiteKing;
 	}
 }
 
@@ -218,7 +308,7 @@ void AChessPlayerController::UpdateSelectedPieceLocation(FIntPoint NewIndex, ABa
     //If selected square has enemy chess piece, destroy enemy chess piece
     if(ChessBoard->GetChessPiece(NewIndex))
     {
-        ChessBoard->GetChessPiece(NewIndex)->Destroy();
+        ChessGameMode->PieceCaptured(ChessBoard->GetChessPiece(NewIndex));
     }
     //Set ChessBoard to chess piece of vacated position to nullptr
     ChessBoard->SetChessPiece(ChessPiece->GetCurrentPosition(), nullptr);
@@ -266,6 +356,9 @@ void AChessPlayerController::BeginPlay()
         Subsystem->AddMappingContext(DefaultMappingContext, 0);
     }
 
+    //Initialize GameMode
+    ChessGameMode = Cast<AChessGameMode>(UGameplayStatics::GetGameMode(this));
+
     //Initialize ChessBoard
     TArray<AActor*> ChessBoards;
     UGameplayStatics::GetAllActorsOfClass(this, AChessBoard::StaticClass(), ChessBoards);
@@ -283,6 +376,26 @@ void AChessPlayerController::BeginPlay()
 	{
 		EnemySide = "White";
 	}
+
+    //Initialize Kings
+    TArray<AActor*> Kings;
+    UGameplayStatics::GetAllActorsOfClass(this, AKingChessPiece::StaticClass(), Kings);
+
+    if(Kings.Num() > 0)
+    {
+        for(auto king : Kings)
+        {
+            if(king->ActorHasTag("White"))
+            {
+                WhiteKing = Cast<AKingChessPiece>(king);
+            }
+            else if(king->ActorHasTag("Black"))
+            {
+                BlackKing = Cast<AKingChessPiece>(king);
+            }
+        }
+    }
+    PlayerKing = WhiteKing;
 }
 
 void AChessPlayerController::SetupInputComponent()
