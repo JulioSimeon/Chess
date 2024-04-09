@@ -31,27 +31,21 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
         //if King is in first move
         if(bIsFirstMove)
         {
-            int j = -1;
-            for(int i = 0; i <= 7; i += 7)
+            for(int i = 0, j = -1; i <= 7; i += 7, j *= -1)
             {
-                if(ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y)))
+                if(ABaseChessPiece* CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y))))
                 {
-                    if(ABaseChessPiece* CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y))))
+                    //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
+                    if(CastledRook->IsFirstMove())
                     {
-                        //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
-                        if(CastledRook->IsFirstMove())
+                        //if spaces between King and Rook are vacant 
+                        if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + j, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y)))
                         {
-                            //if spaces between King and Rook are vacant 
-                            if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + j, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y)))
-                            {
-                                PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
-                                bIsCastling = true;
-                            }
+                            PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
+                            bIsCastling = true;
                         }
-                        
                     }
                 }
-                j *= -1;
             }
             
         }
