@@ -19,7 +19,7 @@ public:
 
 	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
 
-	virtual void SetCurrentPosition(FIntPoint NewPosition) override;
+	virtual void MoveChessPiece(FIntPoint NewPosition) override;
 
 	bool IsCastling() const;
 

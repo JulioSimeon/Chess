@@ -65,6 +65,12 @@ bool ABaseChessPiece::IsFirstMove() const
 	return bIsFirstMove;
 }
 
+void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
+{
+	SetCurrentPosition(NewPosition);
+	bIsFirstMove = false;
+}
+
 TArray<FIntPoint> ABaseChessPiece::GetPossibleMovePositions()
 {
 	TArray<FIntPoint> PossibleMoves;
@@ -84,7 +90,6 @@ TArray<FIntPoint> ABaseChessPiece::GetPossibleMovePositionsForEnemy()
 void ABaseChessPiece::SetCurrentPosition(FIntPoint NewPosition)
 {
 	CurrentPosition = NewPosition;
-	bIsFirstMove = false;
 }
 
 FName ABaseChessPiece::GetPlayerSide() const

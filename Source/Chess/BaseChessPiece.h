@@ -27,6 +27,8 @@ public:
 
 	bool IsFirstMove() const;
 
+	virtual void MoveChessPiece(FIntPoint NewPosition);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

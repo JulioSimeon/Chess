@@ -54,8 +54,3 @@ TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
     
     return PossibleMoves;
 }
-
-void ARookChessPiece::SetCurrentPosition(FIntPoint NewPosition)
-{
-    Super::SetCurrentPosition(NewPosition);
-}

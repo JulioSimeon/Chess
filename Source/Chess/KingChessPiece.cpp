@@ -31,36 +31,24 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
         //if King is in first move
         if(bIsFirstMove)
         {
-            //if Rook to the right of king is present 
-            ABaseChessPiece* CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + 3, CurrentPosition.Y)));
-            if(CastledRook)
+            for(int i = -4, j = 1; i <= 3; i+=7, j *= -1)
             {
-                //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
-                if(CastledRook->IsFirstMove() && !PossibleEnemyMoves.Contains(FIntPoint(CurrentPosition.X + 2, CurrentPosition.Y)))
+                if(ABaseChessPiece* CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + i, CurrentPosition.Y))))
                 {
-                    //if spaces between King and Rook are vacant 
-                    if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + 1, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + 2, CurrentPosition.Y)))
+                    //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
+                    if(CastledRook->IsFirstMove() && !PossibleEnemyMoves.Contains(FIntPoint(CurrentPosition.X + 2 * j, CurrentPosition.Y)))
                     {
-                        PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + 2, CurrentPosition.Y));
-                        bIsCastling = true;
+                        //if spaces between King and Rook are vacant 
+                        if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + 1 * j, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + 2 * j, CurrentPosition.Y)))
+                        {
+                            PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + 2 * j, CurrentPosition.Y));
+                            bIsCastling = true;
+                        }
                     }
+                    
                 }
             }
-            //if Rook to the left of king is present 
-            CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X - 4, CurrentPosition.Y)));
-            if(CastledRook)
-            {
-                //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
-                if(CastledRook->IsFirstMove() && !PossibleEnemyMoves.Contains(FIntPoint(CurrentPosition.X - 2, CurrentPosition.Y)))
-                {
-                    //if spaces between King and Rook are vacant 
-                    if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X - 1, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X - 2, CurrentPosition.Y)))
-                    {
-                        PossibleMoves.Emplace(FIntPoint(CurrentPosition.X - 2, CurrentPosition.Y));
-                        bIsCastling = true;
-                    }
-                }
-            }
+            
         }
     }
     return PossibleMoves;
@@ -85,9 +73,9 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositionsForEnemy()
     return PossibleMoves;
 }
 
-void AKingChessPiece::SetCurrentPosition(FIntPoint NewPosition)
+void AKingChessPiece::MoveChessPiece(FIntPoint NewPosition)
 {
-    Super::SetCurrentPosition(NewPosition);
+    SetCurrentPosition(NewPosition);
     bIsCastling = false;
 }
 

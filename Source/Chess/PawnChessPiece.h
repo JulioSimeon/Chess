@@ -21,8 +21,10 @@ public:
 
 	virtual void SetCurrentPosition(FIntPoint NewPosition) override;
 
-	APawnChessPiece* GetEnPassantPawn() const; 
-		
+	APawnChessPiece* GetEnPassantPawn() const;
+
+	virtual void MoveChessPiece(FIntPoint NewPosition) override;
+
 protected:
 	virtual void BeginPlay() override;
 

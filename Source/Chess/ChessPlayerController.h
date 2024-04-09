@@ -69,6 +69,7 @@ private:
 	void BeginNextTurn();
 	void UpdateSelectedPieceLocation(FIntPoint NewIndex, ABaseChessPiece* ChessPiece);
 	bool ShouldPromotePawn();
+	TArray<FIntPoint> GetValidMoves();
 
 	UFUNCTION(BlueprintCallable)
 	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);

@@ -85,7 +85,6 @@ void APawnChessPiece::SetCurrentPosition(FIntPoint NewPosition)
         }
     }
     Super::SetCurrentPosition(NewPosition);
-    EnPassantPawn = nullptr; //reset EnPassantPawn
 }
 
 APawnChessPiece* APawnChessPiece::GetEnPassantPawn() const
@@ -93,10 +92,16 @@ APawnChessPiece* APawnChessPiece::GetEnPassantPawn() const
     return EnPassantPawn;
 }
 
+void APawnChessPiece::MoveChessPiece(FIntPoint NewPosition)
+{
+    Super::MoveChessPiece(NewPosition);
+    EnPassantPawn = nullptr; //reset EnPassantPawn
+}
+
 void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)
 {
     EnPassantPawn = PassedPawn;
-    UE_LOG(LogTemp, Display, TEXT("EnPassant Activated"));
+    UE_LOG(LogTemp, Display, TEXT("EnPassant Activated, EnPassant Pawn = %s"), *PassedPawn->GetActorNameOrLabel());
 }
 
 void APawnChessPiece::BeginPlay()

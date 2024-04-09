@@ -12,6 +12,7 @@
 #include "KingChessPiece.h"
 #include "RookChessPiece.h"
 #include "ChessGameMode.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AChessPlayerController::AChessPlayerController()
 {
@@ -100,10 +101,12 @@ void AChessPlayerController::MoveSelectedPiece()
 
                 if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
                 {
+                    UE_LOG(LogTemp, Display, TEXT("SelectedPiece is a Pawn"));
                     //En Passant Special Move
                     //if Pawn is performing En Passant
                     if(APawnChessPiece* EnPassantPawn = PawnPiece->GetEnPassantPawn())
                     {
+                        UE_LOG(LogTemp, Display, TEXT("Has EnPassant"));
                         //check if ChosenSquare is above EnPassantPawn
                         if(index.X == EnPassantPawn->GetCurrentPosition().X)
                         {
@@ -138,97 +141,60 @@ void AChessPlayerController::MoveSelectedPiece()
     
 }
 
-void AChessPlayerController::DisplayValidMoves()
+TArray<FIntPoint> AChessPlayerController::GetValidMoves()
 {
     TArray<FIntPoint> ValidMoves;
     FIntPoint OriginalIndex = SelectedPiece->GetCurrentPosition();
-    if(PlayerKing->IsChecked())
+
+    for(FIntPoint move : SelectedPiece->GetPossibleMovePositions())
     {
-        TArray<FIntPoint> PossibleMoves = SelectedPiece->GetPossibleMovePositions();
-        if(PossibleMoves.Num() > 0)
+        //simulate moving selectedpiece to each possible move location
+        bool ChangeSide = false;
+        //if move location has an enemy piece
+        AActor* MoveActor = ChessBoard->GetChessPiece(move);
+        if(MoveActor && MoveActor->ActorHasTag(EnemySide))
         {
-            for(FIntPoint move : PossibleMoves)
-            {
-                //simulate moving selectedpiece to each possible move location
-                
-                //if move location has an enemy piece
-                if(AActor* TempActor = ChessBoard->GetChessPiece(move))
-                {
-                    if(TempActor && TempActor->ActorHasTag(EnemySide))
-                    {  
-                        SelectedPiece->SetCurrentPosition(move);
-                        //Set TempActor as not a threat
-                        TempActor->Tags[0] = PlayerSide;
-                    }
-                    //if king is no longer checked
-                    if(!PlayerKing->IsChecked())
-                    {
-                        ValidMoves.Emplace(move);
-                    }
-                    ChessBoard->GetChessPiece(move)->Tags[0] = EnemySide;
-                    SelectedPiece->SetCurrentPosition(OriginalIndex);
-                }
-                else
-                {
-                    ChessBoard->SetChessPiece(move, SelectedPiece);
-                    ChessBoard->SetChessPiece(OriginalIndex, nullptr);
-                    SelectedPiece->SetCurrentPosition(move);
-                    //if king is no longer checked
-                    if(!PlayerKing->IsChecked())
-                    {
-                        ValidMoves.Emplace(move);
-                    }
-                    //reset selectedpiece location to original index
-                    ChessBoard->SetChessPiece(OriginalIndex, SelectedPiece);
-                    ChessBoard->SetChessPiece(move, nullptr);
-                    SelectedPiece->SetCurrentPosition(OriginalIndex);
-                }
-            }
+            //Set MoveActor as not a threat
+            MoveActor->Tags[0] = PlayerSide;
+            ChangeSide = true;
+        }
+        //Update location of SelectedPiece to move
+        ChessBoard->SetChessPiece(move, SelectedPiece);
+        //Set original index to nullptr
+        ChessBoard->SetChessPiece(OriginalIndex, nullptr);
+        //Set current position of selectedpiece to move
+        SelectedPiece->SetCurrentPosition(move);
+
+        //if king is not in check
+        if(!PlayerKing->IsChecked())
+        {
+            ValidMoves.Emplace(move);
         }
         
-    }
-    else
-    {
-        for(FIntPoint move : SelectedPiece->GetPossibleMovePositions())
+        //reset selectedpiece location to original index
+        ChessBoard->SetChessPiece(OriginalIndex, SelectedPiece);
+        SelectedPiece->SetCurrentPosition(OriginalIndex);
+        //if MoveActor exists reset location to move index
+        if(ChangeSide)
         {
-            if(AActor* TempActor = ChessBoard->GetChessPiece(move))
-            {
-                if(TempActor && TempActor->ActorHasTag(EnemySide))
-                {  
-                    SelectedPiece->SetCurrentPosition(move);
-                    //Set TempActor as not a threat
-                    TempActor->Tags[0] = PlayerSide;
-
-                }
-                //if king will not be in check
-                if(!PlayerKing->IsChecked())
-                {
-                    ValidMoves.Emplace(move);
-                }
-                ChessBoard->GetChessPiece(move)->Tags[0] = EnemySide;
-                SelectedPiece->SetCurrentPosition(OriginalIndex);
-            }
-            else
-            {
-                ChessBoard->SetChessPiece(move, SelectedPiece);
-                ChessBoard->SetChessPiece(OriginalIndex, nullptr);
-                SelectedPiece->SetCurrentPosition(move);
-                //if king will not be in check
-                if(!PlayerKing->IsChecked())
-                {
-                    ValidMoves.Emplace(move);
-                }
-                //reset selectedpiece location to original index
-                ChessBoard->SetChessPiece(OriginalIndex, SelectedPiece);
-                ChessBoard->SetChessPiece(move, nullptr);
-                SelectedPiece->SetCurrentPosition(OriginalIndex);
-            }
-            
+            MoveActor->Tags[0] = EnemySide;
+            ChessBoard->SetChessPiece(move, MoveActor);
+        }
+        //else reset to nullptr
+        else
+        {
+            ChessBoard->SetChessPiece(move, nullptr);
         }
         
         
     }
     UE_LOG(LogTemp, Display, TEXT("Possible Moves: %d"), ValidMoves.Num());
+    return ValidMoves;
+}
+
+void AChessPlayerController::DisplayValidMoves()
+{
+    TArray<FIntPoint> ValidMoves = GetValidMoves();
     if(ValidMoves.Num() > 0)
     {
         for(const auto& location : ValidMoves)
@@ -293,13 +259,33 @@ void AChessPlayerController::BeginNextTurn()
     //Since no more piece selected, reset SelectedPiece to nullptr 
     SelectedPiece = nullptr;
     //Switch Sides if playing co-op
-    if(CoOp)
+    SwitchSides();
+
+    if(!CoOp)
     {
-        SwitchSides();
+        //AI Move
     }
-    else
+    
+    //check if there are still possible moves if king is checked
+    if(PlayerKing->IsChecked())
     {
-        //AI move
+        UE_LOG(LogTemp, Warning, TEXT("CHECK!!!!!!!!!!!!!"));
+        TArray<FIntPoint> PlayerMoves;
+        TArray<AActor*> ChessPieces;
+        UGameplayStatics::GetAllActorsWithTag(this, PlayerSide, ChessPieces);
+        for(AActor* PlayerPiece : ChessPieces)
+        {
+            if(ABaseChessPiece* Piece = Cast<ABaseChessPiece>(PlayerPiece))
+            {
+                SelectedPiece = Piece;
+                PlayerMoves.Append(GetValidMoves());
+            }
+        }
+        if(PlayerMoves.Num() == 0)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("YOU LOST!!!!!!!!!!!!!"));
+        }
+        SelectedPiece = nullptr;
     }
 }
 
@@ -317,7 +303,7 @@ void AChessPlayerController::UpdateSelectedPieceLocation(FIntPoint NewIndex, ABa
     //Update ChessBoard to set chess piece of new location
     ChessBoard->SetChessPiece(NewIndex, ChessPiece);
     //Update CurrentPosition of SelectedPiece
-    ChessPiece->SetCurrentPosition(NewIndex);
+    ChessPiece->MoveChessPiece(NewIndex);
     UE_LOG(LogTemp, Display, TEXT("Index Valid and Chessboard and SelectedPiece are valid"));
 }
 
