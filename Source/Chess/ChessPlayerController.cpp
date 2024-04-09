@@ -263,7 +263,37 @@ void AChessPlayerController::BeginNextTurn()
 
     if(!CoOp)
     {
-        //AI Move
+        //AI move
+        //random move
+        TArray<AActor*> EnemyPieces;
+        TArray<AActor*> EnemyPiecesWithValidMoves;
+        UGameplayStatics::GetAllActorsWithTag(this, PlayerSide, EnemyPieces);
+        for(AActor* enemy : EnemyPieces)
+        {
+            SelectedPiece = Cast<ABaseChessPiece>(enemy);
+            if(SelectedPiece)
+            {
+                if(GetValidMoves().Num() > 0)
+                {
+                    EnemyPiecesWithValidMoves.Add(enemy);
+                }
+            }
+        }
+        if(EnemyPiecesWithValidMoves.Num() > 0)
+        {
+            int target = UKismetMathLibrary::RandomInteger64(EnemyPiecesWithValidMoves.Num());
+            SelectedPiece = Cast<ABaseChessPiece>(EnemyPiecesWithValidMoves[target]);
+            if(SelectedPiece)
+            {
+                target = UKismetMathLibrary::RandomInteger64(GetValidMoves().Num());
+                FIntPoint NewIndex = GetValidMoves()[target];
+                UpdateSelectedPieceLocation(NewIndex, SelectedPiece);
+                
+            }
+            
+        }
+        SelectedPiece = nullptr;
+        SwitchSides();
     }
     
     //check if there are still possible moves if king is checked
