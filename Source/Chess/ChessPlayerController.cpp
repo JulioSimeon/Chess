@@ -12,6 +12,7 @@
 #include "KingChessPiece.h"
 #include "RookChessPiece.h"
 #include "ChessGameMode.h"
+#include "QueenChessPiece.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AChessPlayerController::AChessPlayerController()
@@ -74,47 +75,7 @@ void AChessPlayerController::MoveSelectedPiece()
                 FIntPoint index = ChessBoard->GetIndex(ChosenSquare->GetActorLocation());
                 UE_LOG(LogTemp, Display, TEXT("Index: %s"), *index.ToString());
 
-                //Castling Special Move
-                //Check if SelectedPiece is King and if it has CastledRook
-                if(AKingChessPiece* KingPiece = Cast<AKingChessPiece>(SelectedPiece))
-                {
-                    if(KingPiece->IsCastling())
-                    {
-                        //Move CastledRook to new location depending selected location
-                        if(index.X == 2)
-                        {   
-                            if(ABaseChessPiece* RookPiece = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(0, index.Y))))
-                            {
-                                UpdateSelectedPieceLocation(FIntPoint(RookPiece->GetCurrentPosition().X + 3, RookPiece->GetCurrentPosition().Y), RookPiece);
-                            }
-                            
-                        }
-                        else if(index.X == 6)
-                        {
-                            if(ABaseChessPiece* RookPiece = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(7, index.Y))))
-                            {
-                                UpdateSelectedPieceLocation(FIntPoint(RookPiece->GetCurrentPosition().X - 2, RookPiece->GetCurrentPosition().Y), RookPiece);
-                            }
-                        } 
-                    }
-                }
-
-                if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
-                {
-                    UE_LOG(LogTemp, Display, TEXT("SelectedPiece is a Pawn"));
-                    //En Passant Special Move
-                    //if Pawn is performing En Passant
-                    if(APawnChessPiece* EnPassantPawn = PawnPiece->GetEnPassantPawn())
-                    {
-                        UE_LOG(LogTemp, Display, TEXT("Has EnPassant"));
-                        //check if ChosenSquare is above EnPassantPawn
-                        if(index.X == EnPassantPawn->GetCurrentPosition().X)
-                        {
-                            EnPassantPawn->Destroy();
-                        }
-                        
-                    }
-                }
+                CheckSpecialMoves(index);
 
                 if(index != FIntPoint(-1, -1))
                 {
@@ -129,6 +90,7 @@ void AChessPlayerController::MoveSelectedPiece()
                     //User chooses which chess piece pawn will be promoted to
                     PromotePawn();
                     return; 
+
                 }   
             }
             BeginNextTurn();
@@ -190,6 +152,52 @@ TArray<FIntPoint> AChessPlayerController::GetValidMoves()
     }
     UE_LOG(LogTemp, Display, TEXT("Possible Moves: %d"), ValidMoves.Num());
     return ValidMoves;
+}
+
+void AChessPlayerController::CheckSpecialMoves(FIntPoint index)
+{
+    //Castling Special Move
+    //Check if SelectedPiece is King and if it has CastledRook
+    if(AKingChessPiece* KingPiece = Cast<AKingChessPiece>(SelectedPiece))
+    {
+        if(KingPiece->IsCastling())
+        {
+            //Move CastledRook to new location depending selected location
+            if(index.X == 2)
+            {   
+                if(ABaseChessPiece* RookPiece = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(0, index.Y))))
+                {
+                    UpdateSelectedPieceLocation(FIntPoint(RookPiece->GetCurrentPosition().X + 3, RookPiece->GetCurrentPosition().Y), RookPiece);
+                }
+                
+            }
+            else if(index.X == 6)
+            {
+                if(ABaseChessPiece* RookPiece = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(7, index.Y))))
+                {
+                    UpdateSelectedPieceLocation(FIntPoint(RookPiece->GetCurrentPosition().X - 2, RookPiece->GetCurrentPosition().Y), RookPiece);
+                }
+            } 
+        }
+    }
+
+    //En Passant Special Move
+    //if Pawn is performing En Passant
+    if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
+    {
+        UE_LOG(LogTemp, Display, TEXT("SelectedPiece is a Pawn"));
+        
+        if(APawnChessPiece* EnPassantPawn = PawnPiece->GetEnPassantPawn())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Has EnPassant"));
+            //check if ChosenSquare is above EnPassantPawn
+            if(index.X == EnPassantPawn->GetCurrentPosition().X)
+            {
+                EnPassantPawn->Destroy();
+            }
+            
+        }
+    }
 }
 
 void AChessPlayerController::DisplayValidMoves()
@@ -265,34 +273,7 @@ void AChessPlayerController::BeginNextTurn()
     {
         //AI move
         //random move
-        TArray<AActor*> EnemyPieces;
-        TArray<AActor*> EnemyPiecesWithValidMoves;
-        UGameplayStatics::GetAllActorsWithTag(this, PlayerSide, EnemyPieces);
-        for(AActor* enemy : EnemyPieces)
-        {
-            SelectedPiece = Cast<ABaseChessPiece>(enemy);
-            if(SelectedPiece)
-            {
-                if(GetValidMoves().Num() > 0)
-                {
-                    EnemyPiecesWithValidMoves.Add(enemy);
-                }
-            }
-        }
-        if(EnemyPiecesWithValidMoves.Num() > 0)
-        {
-            int target = UKismetMathLibrary::RandomInteger64(EnemyPiecesWithValidMoves.Num());
-            SelectedPiece = Cast<ABaseChessPiece>(EnemyPiecesWithValidMoves[target]);
-            if(SelectedPiece)
-            {
-                target = UKismetMathLibrary::RandomInteger64(GetValidMoves().Num());
-                FIntPoint NewIndex = GetValidMoves()[target];
-                UpdateSelectedPieceLocation(NewIndex, SelectedPiece);
-                
-            }
-            
-        }
-        SelectedPiece = nullptr;
+        AIMove();
         SwitchSides();
     }
     
@@ -313,7 +294,7 @@ void AChessPlayerController::BeginNextTurn()
         }
         if(PlayerMoves.Num() == 0)
         {
-            UE_LOG(LogTemp, Warning, TEXT("YOU LOST!!!!!!!!!!!!!"));
+            UE_LOG(LogTemp, Warning, TEXT("%s LOST!!!!!!!!!!!!!"), *PlayerSide.ToString());
         }
         SelectedPiece = nullptr;
     }
@@ -358,9 +339,61 @@ void AChessPlayerController::SpawnPromotedPawn()
         SelectedPiece->Destroy();
         //Spawn chosen chess piece and set selectedpiece to chosen piece
         SelectedPiece = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotion, ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator));
-        BeginNextTurn();
+        if(!AITurn)
+        {
+            BeginNextTurn();
+        }
+        
     }
     
+}
+
+void AChessPlayerController::AIMove()
+{
+    AITurn = true;
+    TArray<AActor*> EnemyPieces;
+    TArray<AActor*> EnemyPiecesWithValidMoves;
+    UGameplayStatics::GetAllActorsWithTag(this, PlayerSide, EnemyPieces);
+    for(AActor* enemy : EnemyPieces)
+    {
+        SelectedPiece = Cast<ABaseChessPiece>(enemy);
+        if(SelectedPiece)
+        {
+            if(GetValidMoves().Num() > 0)
+            {
+                EnemyPiecesWithValidMoves.Add(enemy);
+            }
+        }
+    }
+    if(EnemyPiecesWithValidMoves.Num() > 0)
+    {
+        int target = UKismetMathLibrary::RandomInteger64(EnemyPiecesWithValidMoves.Num());
+        SelectedPiece = Cast<ABaseChessPiece>(EnemyPiecesWithValidMoves[target]);
+        if(SelectedPiece)
+        {
+            target = UKismetMathLibrary::RandomInteger64(GetValidMoves().Num());
+            FIntPoint NewIndex = GetValidMoves()[target];
+            CheckSpecialMoves(NewIndex);
+            UpdateSelectedPieceLocation(NewIndex, SelectedPiece);
+
+            if(ShouldPromotePawn())
+            {
+                SetAIPawnPromotion();
+                SpawnPromotedPawn();
+            }   
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%s LOST!!!!!!!!!!!!!"), *PlayerSide.ToString());
+    }
+    SelectedPiece = nullptr;
+    AITurn = false;
+
+    if(AIvsAI)
+    {
+        SwitchSides();
+    }
 }
 
 void AChessPlayerController::BeginPlay()
@@ -412,6 +445,12 @@ void AChessPlayerController::BeginPlay()
         }
     }
     PlayerKing = WhiteKing;
+
+    //AIvsAI
+    if(AIvsAI)
+    {
+        GetWorldTimerManager().SetTimer(AIvsAITimerHandle, this, &AChessPlayerController::AIMove, AIRate, true);
+    }
 }
 
 void AChessPlayerController::SetupInputComponent()

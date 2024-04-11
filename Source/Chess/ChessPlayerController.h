@@ -34,9 +34,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void PromotePawn();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetAIPawnPromotion();
+
 
 private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName PlayerSide;
 
 	FName EnemySide;
@@ -55,6 +58,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	bool CoOp;
 
+	bool AITurn = false;
+
 	class ABaseChessPiece* SelectedPiece;
 
 	TArray<AActor*> ValidSquares;
@@ -71,13 +76,25 @@ private:
 	bool ShouldPromotePawn();
 	TArray<FIntPoint> GetValidMoves();
 
+	void CheckSpecialMoves(FIntPoint index);
+
 	UFUNCTION(BlueprintCallable)
 	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();
 
+	void AIMove();
+
 	class AKingChessPiece* WhiteKing;
 	AKingChessPiece* BlackKing;
 	AKingChessPiece* PlayerKing;
+
+	FTimerHandle AIvsAITimerHandle;
+
+	UPROPERTY(EditAnywhere)
+	bool AIvsAI;
+
+	UPROPERTY(EditAnywhere)
+	float AIRate;
 };
