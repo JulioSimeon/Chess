@@ -2,6 +2,7 @@
 
 
 #include "ChessBoard.h"
+#include "BaseChessPiece.h"
 
 // Sets default values
 AChessBoard::AChessBoard()
@@ -46,6 +47,47 @@ FIntPoint AChessBoard::GetIndex(FVector location) const
 		}
 	}
 	return FIntPoint(-1, -1);
+}
+
+int AChessBoard::Evaluate() const
+{
+	int total{};
+	for(int i{}; i < BoardHeight; i++)
+	{
+		for(int j{}; j < BoardLength; j++)
+		{
+			if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(BoardArray[i][j].ChessPiece))
+			{
+				total += ChessPiece->GetValue();
+			}
+		}
+	}
+	return total;
+}
+
+void AChessBoard::PrintChessPieces()
+{
+	int whitecount{};
+	int blackcount{};
+	for(int i{}; i < BoardHeight; i++)
+	{
+		for(int j{}; j < BoardLength; j++)
+		{
+			if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(BoardArray[i][j].ChessPiece))
+			{
+				UE_LOG(LogTemp, Display, TEXT("%s at %d, %d"), *ChessPiece->GetActorNameOrLabel(), i, j);
+				if(ChessPiece->GetPlayerSide() == "White")
+				{
+					whitecount++;
+				}
+				else if(ChessPiece->GetPlayerSide() == "Black")
+				{
+					blackcount++;
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Total white %d total black %d"), whitecount, blackcount);
 }
 
 // Called when the game starts or when spawned

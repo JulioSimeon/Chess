@@ -25,6 +25,8 @@ public:
 
 	bool IsChecked() const;
 
+	virtual int GetValue() const override;
+
 private:
 	TArray<FIntPoint> GetPossibleMovesOfEnemyPieces() const;
 

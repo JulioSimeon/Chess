@@ -90,3 +90,8 @@ TArray<FIntPoint> AQueenChessPiece::GetPossibleMovePositions()
     }
     return PossibleMoves;
 }
+
+int AQueenChessPiece::GetValue() const 
+{
+    return Super::GetValue() * 9;
+}

@@ -53,3 +53,8 @@ TArray<FIntPoint> ABishopChessPiece::GetPossibleMovePositions()
     }
     return PossibleMoves;
 }
+
+int ABishopChessPiece::GetValue() const 
+{
+     return Super::GetValue() * 3;
+}

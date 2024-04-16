@@ -9,6 +9,23 @@
 /**
  * 
  */
+
+struct ChessMove
+{
+	class ABaseChessPiece* ChessPiece = nullptr;
+	FIntPoint NewPosition;
+
+	ChessMove()
+	{
+
+	}
+	ChessMove(ABaseChessPiece* piece, FIntPoint index)
+	{
+		ChessPiece = piece;
+		NewPosition = index;
+	}
+};
+
 UCLASS()
 class CHESS_API AChessPlayerController : public APlayerController
 {
@@ -84,7 +101,7 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();
 
-	void AIMove();
+	void RandomAIMove();
 
 	class AKingChessPiece* WhiteKing;
 	AKingChessPiece* BlackKing;
@@ -97,4 +114,17 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float AIRate;
+
+	int Minimax(int depth, bool MaximizingPlayer, bool IsFirst);
+
+	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
+
+	ChessMove GeneratedMove;
+
+	void GenerateMove();
+
+	TArray<ChessMove> GetAllValidMoves(bool WhiteSide);
+
+	TArray<AActor*> MoveChessPieces;
+	TArray<FIntPoint> MoveOriginalPositions;
 };

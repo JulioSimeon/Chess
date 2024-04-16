@@ -54,3 +54,8 @@ TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
     
     return PossibleMoves;
 }
+
+int ARookChessPiece::GetValue() const 
+{
+    return Super::GetValue() * 5;
+}

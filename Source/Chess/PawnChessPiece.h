@@ -25,6 +25,8 @@ public:
 
 	virtual void MoveChessPiece(FIntPoint NewPosition) override;
 
+	virtual int GetValue() const override;
+
 protected:
 	virtual void BeginPlay() override;
 

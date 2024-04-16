@@ -71,6 +71,31 @@ void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
 	bIsFirstMove = false;
 }
 
+int ABaseChessPiece::GetValue() const
+{
+	if(PlayerSide == "White")
+	{
+		return 1;
+	}
+	else if(PlayerSide == "Black")
+	{
+		return -1;
+	}
+	return 0;
+}
+
+void ABaseChessPiece::SynchronizePosition()
+{
+	if(ChessBoard)
+	{
+		if(PlayerSide == "Black")
+		{	
+			UE_LOG(LogTemp, Warning, TEXT("%s synchronized"), *GetActorNameOrLabel());
+		}
+		ChessBoard->SetChessPiece(CurrentPosition, this);
+	}
+}
+
 TArray<FIntPoint> ABaseChessPiece::GetPossibleMovePositions()
 {
 	TArray<FIntPoint> PossibleMoves;

@@ -29,6 +29,10 @@ public:
 
 	virtual void MoveChessPiece(FIntPoint NewPosition);
 
+	virtual int GetValue() const;
+
+	void SynchronizePosition();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -37,6 +41,7 @@ protected:
 
 	class AChessBoard* ChessBoard;
 
+	UPROPERTY(VisibleAnywhere)
 	FIntPoint CurrentPosition;
 
 	FName PlayerSide;

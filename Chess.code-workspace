@@ -23,7 +23,11 @@
       "algorithm": "cpp",
       "type_traits": "cpp",
       "xstring": "cpp",
-      "xutility": "cpp"
+      "xutility": "cpp",
+      "limits": "cpp",
+      "valarray": "cpp",
+      "random": "cpp",
+      "utility": "cpp"
     }
   },
   "extensions": {

@@ -98,10 +98,15 @@ void APawnChessPiece::MoveChessPiece(FIntPoint NewPosition)
     EnPassantPawn = nullptr; //reset EnPassantPawn
 }
 
+int APawnChessPiece::GetValue() const
+{
+    return Super::GetValue() * 1;
+}
+
 void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)
 {
     EnPassantPawn = PassedPawn;
-    UE_LOG(LogTemp, Display, TEXT("EnPassant Activated, EnPassant Pawn = %s"), *PassedPawn->GetActorNameOrLabel());
+    //UE_LOG(LogTemp, Display, TEXT("EnPassant Activated, EnPassant Pawn = %s"), *PassedPawn->GetActorNameOrLabel());
 }
 
 void APawnChessPiece::BeginPlay()

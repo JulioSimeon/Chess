@@ -96,6 +96,11 @@ bool AKingChessPiece::IsChecked() const
     return false;
 }
 
+int AKingChessPiece::GetValue() const 
+{
+    return 0;
+}
+
 TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const
 {
     TArray<FIntPoint> EnemyMoves;

@@ -22,3 +22,8 @@ TArray<FIntPoint> AKnightChessPiece::GetPossibleMovePositions()
     }
     return PossibleMoves;
 }
+
+int AKnightChessPiece::GetValue() const 
+{
+    return Super::GetValue() * 3;
+}

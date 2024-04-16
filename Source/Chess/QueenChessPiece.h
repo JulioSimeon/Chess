@@ -16,4 +16,6 @@ class CHESS_API AQueenChessPiece : public ABaseChessPiece
 	
 public:
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
+
+	virtual int GetValue() const override;
 };

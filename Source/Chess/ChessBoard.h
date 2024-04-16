@@ -39,8 +39,13 @@ public:
 
 	FIntPoint GetIndex(FVector location) const;
 
+	int Evaluate() const;
+
 	static const int BoardHeight = 8;
 	static const int BoardLength = 8;
+
+	//debug
+	void PrintChessPieces();
 
 protected:
 	// Called when the game starts or when spawned
