@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ChessPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -136,7 +135,6 @@ void AChessPlayerController::DeleteValidMoveSquares()
         }
         ValidSquares.Empty();
     }
-    
 }
 
 void AChessPlayerController::MoveSelectedPiece()
@@ -200,30 +198,10 @@ void AChessPlayerController::MoveSelectedPiece()
 TArray<FIntPoint> AChessPlayerController::GetValidMoves(ABaseChessPiece* ChessPiece)
 {
     TArray<FIntPoint> ValidMoves;
-    // FIntPoint OriginalIndex = ChessPiece->GetCurrentPosition();
-    
-    // FName EnemyTag = ChessPiece->GetSide() == "White"? "Black" : "White";
     AKingChessPiece* King = ChessPiece->GetSide() == "White"? WhiteKing : BlackKing;
 
     for(FIntPoint move : ChessPiece->GetPossibleMovePositions())
     {
-        // //simulate moving ChessPiece to each possible move location
-        // bool ChangeSide = false;
-        // //if move location has an enemy piece
-        // AActor* MoveActor = ChessBoard->GetChessPiece(move);
-        // if(MoveActor && MoveActor->ActorHasTag(EnemyTag))
-        // {
-        //     //Set MoveActor as not a threat
-        //     MoveActor->Tags[0] = "";
-        //     ChangeSide = true;
-        // }
-        // //Update location of ChessPiece to move
-        // ChessBoard->SetChessPiece(move, ChessPiece);
-        // //Set original index to nullptr
-        // ChessBoard->SetChessPiece(OriginalIndex, nullptr);
-        // //Set current position of ChessPiece to move
-        // ChessPiece->SetCurrentPosition(move);
-
         SimulateMove(ChessPiece, move);
 
         //if king is not in check
@@ -233,23 +211,6 @@ TArray<FIntPoint> AChessPlayerController::GetValidMoves(ABaseChessPiece* ChessPi
         }
         
         UndoMove();
-
-        // //reset ChessPiece location to original index
-        // ChessBoard->SetChessPiece(OriginalIndex, ChessPiece);
-        // ChessPiece->SetCurrentPosition(OriginalIndex);
-        // //if MoveActor exists reset location to move index
-        // if(ChangeSide)
-        // {
-        //     MoveActor->Tags[0] = EnemyTag;
-        //     ChessBoard->SetChessPiece(move, MoveActor);
-        // }
-        // //else reset to nullptr
-        // else
-        // {
-        //     ChessBoard->SetChessPiece(move, nullptr);
-        // }
-        
-        
     }
     //UE_LOG(LogTemp, Display, TEXT("Possible Moves: %d"), ValidMoves.Num());
     return ValidMoves;
@@ -503,7 +464,7 @@ void AChessPlayerController::RandomAIMove()
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("%s LOST!!!!!!!!!!!!!"), *CurrentSide.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("%s LOST!"), *CurrentSide.ToString());
     }
     AITurn = false;
 
@@ -516,11 +477,6 @@ void AChessPlayerController::RandomAIMove()
 int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst)
 {
     ChessMove TempMove;
-
-    if(IsFirst)
-    {
-        MoveChessPieces.Empty();
-    }
 
     if(depth == 0) // or game over when in position
     {
@@ -541,23 +497,6 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
         int MaxEval = -10000;
         for(ChessMove& move : GetAllValidMoves(true))
         {
-            // FIntPoint OriginalIndex = move.ChessPiece->GetCurrentPosition();
-            // bool ChangeSide = false;
-            // //if move location has an enemy piece
-            // AActor* MoveActor = ChessBoard->GetChessPiece(move.NewPosition);
-            // if(MoveActor && MoveActor->ActorHasTag("Black"))
-            // {
-            //     //Set MoveActor as not a threat
-            //     MoveActor->Tags[0] = "";
-            //     ChangeSide = true;
-            // }
-            // //Update location of SelectedPiece to move
-            // ChessBoard->SetChessPiece(move.NewPosition, move.ChessPiece);
-            // //Set original index to nullptr
-            // ChessBoard->SetChessPiece(OriginalIndex, nullptr);
-            // //Set current position of selectedpiece to move
-            // move.ChessPiece->SetCurrentPosition(move.NewPosition);
-
             SimulateMove(move.ChessPiece, move.NewPosition);
 
             int eval = Minimax(depth - 1, false, alpha, beta, false);
@@ -571,28 +510,11 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
             }
 
             UndoMove();
-
-            // //reset selectedpiece location to original index
-            // ChessBoard->SetChessPiece(OriginalIndex, move.ChessPiece);
-            // move.ChessPiece->SetCurrentPosition(OriginalIndex);
-            // //if MoveActor exists reset location to move index
-            // if(ChangeSide)
-            // {
-            //     MoveActor->Tags[0] = "Black";
-            //     ChessBoard->SetChessPiece(move.NewPosition, MoveActor);
-            // }
-            // //else reset to nullptr
-            // else
-            // {
-            //     ChessBoard->SetChessPiece(move.NewPosition, nullptr);
-            // }
         
             if(beta <= alpha)
             {
                 break;
             }
-
-            
 
         }
         if(IsFirst)
@@ -608,23 +530,6 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
         {
             SimulateMove(move.ChessPiece, move.NewPosition);
 
-            // FIntPoint OriginalIndex = move.ChessPiece->GetCurrentPosition();
-            // bool ChangeSide = false;
-            // //if move location has an enemy piece
-            // AActor* MoveActor = ChessBoard->GetChessPiece(move.NewPosition);
-            // if(MoveActor && MoveActor->ActorHasTag("White"))
-            // {
-            //     //Set MoveActor as not a threat
-            //     MoveActor->Tags[0] = "";
-            //     ChangeSide = true;
-            // }
-            // //Update location of SelectedPiece to move
-            // ChessBoard->SetChessPiece(move.NewPosition, move.ChessPiece);
-            // //Set original index to nullptr
-            // ChessBoard->SetChessPiece(OriginalIndex, nullptr);
-            // //Set current position of selectedpiece to move
-            // move.ChessPiece->SetCurrentPosition(move.NewPosition);
-
             int eval = Minimax(depth - 1, true, alpha, beta, false);
             MinEval = FGenericPlatformMath::Min(MinEval, eval);
             beta = FGenericPlatformMath::Min(beta, eval);
@@ -637,28 +542,11 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
 
             UndoMove();
 
-            // //reset selectedpiece location to original index
-            // ChessBoard->SetChessPiece(OriginalIndex, move.ChessPiece);
-            // move.ChessPiece->SetCurrentPosition(OriginalIndex);
-            // //if MoveActor exists reset location to move index
-            // if(ChangeSide)
-            // {
-            //     MoveActor->Tags[0] = "White";
-            //     ChessBoard->SetChessPiece(move.NewPosition, MoveActor);
-            // }
-            // //else reset to nullptr
-            // else
-            // {
-            //     ChessBoard->SetChessPiece(move.NewPosition, nullptr);
-            // }
-
             if(beta <= alpha)
             {
                 break;
             }
-
         }
-        
         if(IsFirst)
         {
             GeneratedMove = TempMove;
@@ -683,9 +571,6 @@ void AChessPlayerController::GenerateMove()
         }
         Minimax(MinimaxDepth, false, -infinity, infinity, true);
     }
-        
-    
-    
     if(GeneratedMove.ChessPiece)
     {
         UE_LOG(LogTemp, Warning, TEXT("Chosen Actor %s Chosen Index %s"), *GeneratedMove.ChessPiece->GetActorNameOrLabel(), *GeneratedMove.NewPosition.ToString());

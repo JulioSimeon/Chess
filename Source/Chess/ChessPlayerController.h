@@ -100,16 +100,15 @@ private:
 
 	bool HasEnemyLost();
 
+	//Move Simulation
 	void SimulateMove(ABaseChessPiece* ChessPiece, FIntPoint NewIndex);
+	void UndoMove();
 	int SimulateIndex{};
 	TArray<ABaseChessPiece*> SimulatedMovedPieces;
 	TArray<ABaseChessPiece*> SimulatedCapturedPieces;
 	TArray<FIntPoint> OriginalLocations;
 	TArray<FIntPoint> NewLocations;
 	TArray<FName> OriginalCapturedPieceSide;
-
-	void UndoMove();
-
 
 	TArray<FIntPoint> GetValidMoves(ABaseChessPiece* ChessPiece);
 
@@ -141,7 +140,6 @@ private:
 
 	TArray<ChessMove> GetAllValidMoves(bool IsWhite);
 
-	TArray<AActor*> MoveChessPieces;
 	TArray<FIntPoint> MoveOriginalPositions;
 
 	//AI vs AI
