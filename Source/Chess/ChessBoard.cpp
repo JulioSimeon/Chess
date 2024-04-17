@@ -76,11 +76,11 @@ void AChessBoard::PrintChessPieces()
 			if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(BoardArray[i][j].ChessPiece))
 			{
 				UE_LOG(LogTemp, Display, TEXT("%s at %d, %d"), *ChessPiece->GetActorNameOrLabel(), i, j);
-				if(ChessPiece->GetPlayerSide() == "White")
+				if(ChessPiece->GetSide() == "White")
 				{
 					whitecount++;
 				}
-				else if(ChessPiece->GetPlayerSide() == "Black")
+				else if(ChessPiece->GetSide() == "Black")
 				{
 					blackcount++;
 				}

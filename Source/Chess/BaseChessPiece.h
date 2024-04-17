@@ -23,7 +23,7 @@ public:
 
 	virtual void SetCurrentPosition(FIntPoint NewPosition);
 	
-	FName GetPlayerSide() const;
+	FName GetSide() const;
 
 	bool IsFirstMove() const;
 
@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	FIntPoint CurrentPosition;
 
-	FName PlayerSide;
+	FName Side;
 
 	FName EnemySide;
 	

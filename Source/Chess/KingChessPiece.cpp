@@ -106,10 +106,12 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const
     TArray<FIntPoint> EnemyMoves;
     TArray<AActor*> EnemyPieces;
     UGameplayStatics::GetAllActorsWithTag(this, EnemySide, EnemyPieces);
+    
     for(AActor* EnemyPiece : EnemyPieces)
     {
         if(ABaseChessPiece* Enemy = Cast<ABaseChessPiece>(EnemyPiece))
         {
+            
             EnemyMoves.Append(Enemy->GetPossibleMovePositionsForEnemy());
         }
     }

@@ -24,6 +24,12 @@ struct ChessMove
 		ChessPiece = piece;
 		NewPosition = index;
 	}
+
+	void reset()
+	{
+		ChessPiece = nullptr;
+		NewPosition = {0, 0};
+	}
 };
 
 UCLASS()
@@ -57,7 +63,7 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName PlayerSide;
+	FName CurrentSide;
 
 	FName EnemySide;
 
@@ -85,15 +91,29 @@ private:
 
 	void SelectPiece();
 	void MoveSelectedPiece();
-	void DisplayValidMoves();
+	void DisplayValidMoves(ABaseChessPiece* ChessPiece);
 	void DeleteValidMoveSquares();
 	void SwitchSides();
 	void BeginNextTurn();
 	void UpdateSelectedPieceLocation(FIntPoint NewIndex, ABaseChessPiece* ChessPiece);
 	bool ShouldPromotePawn();
-	TArray<FIntPoint> GetValidMoves();
 
-	void CheckSpecialMoves(FIntPoint index);
+	bool HasEnemyLost();
+
+	void SimulateMove(ABaseChessPiece* ChessPiece, FIntPoint NewIndex);
+	int SimulateIndex{};
+	TArray<ABaseChessPiece*> SimulatedMovedPieces;
+	TArray<ABaseChessPiece*> SimulatedCapturedPieces;
+	TArray<FIntPoint> OriginalLocations;
+	TArray<FIntPoint> NewLocations;
+	TArray<FName> OriginalCapturedPieceSide;
+
+	void UndoMove();
+
+
+	TArray<FIntPoint> GetValidMoves(ABaseChessPiece* ChessPiece);
+
+	void CheckSpecialMoves(FIntPoint index, ABaseChessPiece* ChessPiece);
 
 	UFUNCTION(BlueprintCallable)
 	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
@@ -101,30 +121,33 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();
 
-	void RandomAIMove();
+	
 
 	class AKingChessPiece* WhiteKing;
 	AKingChessPiece* BlackKing;
-	AKingChessPiece* PlayerKing;
+	AKingChessPiece* CurrentKing;
+	AKingChessPiece* EnemyKing;
 
-	FTimerHandle AIvsAITimerHandle;
-
+	//Move Generation
 	UPROPERTY(EditAnywhere)
-	bool AIvsAI;
-
-	UPROPERTY(EditAnywhere)
-	float AIRate;
-
-	int Minimax(int depth, bool MaximizingPlayer, bool IsFirst);
-
-	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
-
+	int MinimaxDepth = 4;
 	ChessMove GeneratedMove;
-
+	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
+	void RandomAIMove();
 	void GenerateMove();
+	
+	
+	void SynchronizeChessPieces() const;
 
-	TArray<ChessMove> GetAllValidMoves(bool WhiteSide);
+	TArray<ChessMove> GetAllValidMoves(bool IsWhite);
 
 	TArray<AActor*> MoveChessPieces;
 	TArray<FIntPoint> MoveOriginalPositions;
+
+	//AI vs AI
+	UPROPERTY(EditAnywhere)
+	bool AIvsAI;
+	UPROPERTY(EditAnywhere)
+	float AIRate;
+	FTimerHandle AIvsAITimerHandle;
 };

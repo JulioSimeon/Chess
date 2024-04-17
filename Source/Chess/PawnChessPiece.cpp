@@ -112,7 +112,7 @@ void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)
 void APawnChessPiece::BeginPlay()
 {
     Super::BeginPlay();
-    if(PlayerSide == "Black")
+    if(Side == "Black")
     {
         Direction = -1;
     }

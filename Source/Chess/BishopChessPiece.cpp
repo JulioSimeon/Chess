@@ -20,18 +20,19 @@ TArray<FIntPoint> ABishopChessPiece::GetPossibleMovePositions()
         {
             for(int j{}; j < diag; j++)
             {
-                if(IsLocationValid(Diagonal[j]))
+                if(IsLocationValid(Diagonal[j]) && !PossibleMoves.Contains(Diagonal[j])) //Location is Empty or it has an enemy
                 {
                     PossibleMoves.Emplace(Diagonal[j]);
                 }
-                else 
+                else //Location is not valid
                 {
                     continue;
                 }
-                if(ChessBoard->GetChessPiece(Diagonal[j]))
+                if(ChessBoard->GetChessPiece(Diagonal[j])) //Location has a chess piece that has a friendly chess piece
                 {
                     continue;
                 }
+
                 switch(j)
                 {
                     case 0:

@@ -28,13 +28,13 @@ void ABaseChessPiece::BeginPlay()
     }
 	InitializeCurrentPosition();
 	
-	PlayerSide = Tags[0];
+	Side = Tags[0];
 
-	if(PlayerSide == "White")
+	if(Side == "White")
 	{
 		EnemySide = "Black";
 	}
-	else if(PlayerSide == "Black")
+	else if(Side == "Black")
 	{
 		EnemySide = "White";
 	}
@@ -52,7 +52,7 @@ bool ABaseChessPiece::IsLocationValid(FIntPoint Index) const
 			}
 			else if(ChessBoard->GetChessPiece(Index))
 			{
-				return !(ChessBoard->GetChessPiece(Index)->ActorHasTag(PlayerSide));
+				return !(ChessBoard->GetChessPiece(Index)->ActorHasTag(Side));
 			}
     	}
 	}
@@ -73,11 +73,11 @@ void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
 
 int ABaseChessPiece::GetValue() const
 {
-	if(PlayerSide == "White")
+	if(Side == "White")
 	{
 		return 1;
 	}
-	else if(PlayerSide == "Black")
+	else if(Side == "Black")
 	{
 		return -1;
 	}
@@ -88,10 +88,6 @@ void ABaseChessPiece::SynchronizePosition()
 {
 	if(ChessBoard)
 	{
-		if(PlayerSide == "Black")
-		{	
-			UE_LOG(LogTemp, Warning, TEXT("%s synchronized"), *GetActorNameOrLabel());
-		}
 		ChessBoard->SetChessPiece(CurrentPosition, this);
 	}
 }
@@ -117,9 +113,9 @@ void ABaseChessPiece::SetCurrentPosition(FIntPoint NewPosition)
 	CurrentPosition = NewPosition;
 }
 
-FName ABaseChessPiece::GetPlayerSide() const
+FName ABaseChessPiece::GetSide() const
 {
-	return PlayerSide;
+	return Side;
 }
 
 // Called every frame

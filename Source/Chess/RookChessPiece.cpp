@@ -21,7 +21,7 @@ TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
         {
             for(int j{}; j < direc; j++)
             {
-                if(IsLocationValid(Direction[j]))
+                if(IsLocationValid(Direction[j]) && !PossibleMoves.Contains(Direction[j]))
                 {
                     PossibleMoves.Emplace(Direction[j]);
                 }

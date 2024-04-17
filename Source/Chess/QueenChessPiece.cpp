@@ -28,7 +28,7 @@ TArray<FIntPoint> AQueenChessPiece::GetPossibleMovePositions()
         {
             for(int j{}; j < diag; j++)
             {
-                if(IsLocationValid(Diagonal[j]))
+                if(IsLocationValid(Diagonal[j]) && !PossibleMoves.Contains(Diagonal[j]))
                 {
                     PossibleMoves.Emplace(Diagonal[j]);
                 }
@@ -58,7 +58,7 @@ TArray<FIntPoint> AQueenChessPiece::GetPossibleMovePositions()
             }
             for(int j{}; j < direc; j++)
             {
-                if(IsLocationValid(Direction[j]))
+                if(IsLocationValid(Direction[j]) && !PossibleMoves.Contains(Direction[j]))
                 {
                     PossibleMoves.Emplace(Direction[j]);
                 }
