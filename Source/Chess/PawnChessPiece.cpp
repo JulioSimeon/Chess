@@ -3,6 +3,7 @@
 
 #include "PawnChessPiece.h"
 #include "ChessBoard.h"
+#include "Kismet/KismetMathLibrary.h"
 
 TArray<FIntPoint> APawnChessPiece::GetPossibleMovePositions()
 {
@@ -100,7 +101,7 @@ void APawnChessPiece::MoveChessPiece(FIntPoint NewPosition)
 
 int APawnChessPiece::GetValue() const
 {
-    return Super::GetValue() * 1;
+    return Super::GetValue() * 100 + (Side == "White" ? PawnPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -PawnPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
 }
 
 void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)

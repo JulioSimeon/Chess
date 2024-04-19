@@ -4,6 +4,7 @@
 #include "KingChessPiece.h"
 #include "Kismet/GameplayStatics.h"
 #include "ChessBoard.h"
+#include "Kismet/KismetMathLibrary.h"
 
 TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
 {
@@ -41,8 +42,20 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
                         //if spaces between King and Rook are vacant 
                         if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + j, CurrentPosition.Y)) && !ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y)))
                         {
-                            PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
-                            bIsCastling = true;
+                            if(j == -1)
+                            {
+                                if(!ChessBoard->GetChessPiece(FIntPoint(CurrentPosition.X + (3 * j), CurrentPosition.Y)))
+                                {
+                                    PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
+                                    bIsCastling = true;
+                                }
+                            }
+                            else
+                            {
+                                PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
+                                bIsCastling = true;
+                            }
+                            
                         }
                     }
                 }
@@ -98,7 +111,7 @@ bool AKingChessPiece::IsChecked() const
 
 int AKingChessPiece::GetValue() const 
 {
-    return 0;
+    return (Side == "White" ? KingPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -KingPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
 }
 
 TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const

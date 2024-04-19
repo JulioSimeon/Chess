@@ -73,15 +73,7 @@ void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
 
 int ABaseChessPiece::GetValue() const
 {
-	if(Side == "White")
-	{
-		return 1;
-	}
-	else if(Side == "Black")
-	{
-		return -1;
-	}
-	return 0;
+	return (Side == "White" ? 1 : -1);
 }
 
 void ABaseChessPiece::SynchronizePosition()

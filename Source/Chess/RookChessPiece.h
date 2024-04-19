@@ -18,4 +18,17 @@ public:
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
 
 	virtual int GetValue() const override;
+
+private:
+	int RookPieceSquareTable[8][8]
+	{
+		{  0,   0, 	 0,   0,   0,   0,   0,   0},
+		{  5,  10, 	10,  10,  10,  10,  10,   5},
+		{ -5, 	0, 	 0,   0,   0,   0,   0,  -5},
+		{ -5, 	0, 	 0,   0,   0,   0,   0,  -5},
+		{ -5, 	0, 	 0,   0,   0,   0,   0,  -5},
+		{ -5, 	0, 	 0,   0,   0,   0,   0,  -5},
+		{ -5, 	0, 	 0,   0,   0,   0,   0,  -5},
+		{  0,   0,   0,   5,   5,   0,   0,   0}
+	};
 };

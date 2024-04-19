@@ -48,14 +48,7 @@ void AChessPlayerController::BeginPlay()
     {
         for(auto king : Kings)
         {
-            if(king->ActorHasTag("White"))
-            {
-                WhiteKing = Cast<AKingChessPiece>(king);
-            }
-            else if(king->ActorHasTag("Black"))
-            {
-                BlackKing = Cast<AKingChessPiece>(king);
-            }
+            king->ActorHasTag("White") ? WhiteKing = Cast<AKingChessPiece>(king) : BlackKing = Cast<AKingChessPiece>(king);
         }
     }
 
@@ -66,14 +59,13 @@ void AChessPlayerController::BeginPlay()
         EnemyKing = BlackKing;
 		EnemySide = "Black";
 	}
-	else if(CurrentSide == "Black")
+	else
 	{
         CurrentKing = BlackKing;
         EnemyKing = WhiteKing;
 		EnemySide = "White";
 	}
 
-    //AIvsAI
     if(AIvsAI)
     {
         GetWorldTimerManager().SetTimer(AIvsAITimerHandle, this, &AChessPlayerController::GenerateMove, AIRate, true);
@@ -175,7 +167,7 @@ void AChessPlayerController::MoveSelectedPiece()
 
                 //Pawn Promotion Special Move
                 //Check if Pawn has reached end of chessboard
-                if(ShouldPromotePawn())
+                if(ShouldPromotePawn(SelectedPiece))
                 {
                     //Spawn Widget
                     //User chooses which chess piece pawn will be promoted to
@@ -187,12 +179,7 @@ void AChessPlayerController::MoveSelectedPiece()
             // GetWorldTimerManager().SetTimer(DelayTimerHandle, this, &AChessPlayerController::BeginNextTurn, 0.5f, false);
             BeginNextTurn();
         }
-        else
-        {
-            return;
-        }
     }
-    
 }
 
 TArray<FIntPoint> AChessPlayerController::GetValidMoves(ABaseChessPiece* ChessPiece)
@@ -204,7 +191,7 @@ TArray<FIntPoint> AChessPlayerController::GetValidMoves(ABaseChessPiece* ChessPi
     {
         SimulateMove(ChessPiece, move);
 
-        //if king is not in check
+        //if king is not in check add move to ValidMoves
         if(!King->IsChecked())
         {
             ValidMoves.Emplace(move);
@@ -255,7 +242,6 @@ void AChessPlayerController::CheckSpecialMoves(FIntPoint index, ABaseChessPiece*
             {
                 EnPassantPawn->Destroy();
             }
-            
         }
     }
 }
@@ -269,7 +255,7 @@ void AChessPlayerController::SwitchSides()
         EnemySide = "White";
         EnemyKing = WhiteKing;
 	}
-	else if(CurrentSide == "Black")
+	else
 	{
 		CurrentSide = "White";
         CurrentKing = WhiteKing;
@@ -289,10 +275,8 @@ void AChessPlayerController::BeginNextTurn()
         UE_LOG(LogTemp, Warning, TEXT("%s LOST!"), *EnemySide.ToString());
         return;
     }
-    //Switch Sides if playing co-op
+    //Switch Sides
     SwitchSides();
-    
-    
     
     if(!CoOp)
     {
@@ -314,7 +298,6 @@ void AChessPlayerController::UpdateSelectedPieceLocation(FIntPoint NewIndex, ABa
     //If selected square has enemy chess piece, destroy enemy chess piece
     if(ChessBoard->GetChessPiece(NewIndex))
     {
-        ChessBoard->GetChessPiece(NewIndex)->Tags[0] = "";
         ChessGameMode->PieceCaptured(ChessBoard->GetChessPiece(NewIndex));
     }
     //Set ChessBoard to chess piece of vacated position to nullptr
@@ -329,9 +312,9 @@ void AChessPlayerController::UpdateSelectedPieceLocation(FIntPoint NewIndex, ABa
     
 }
 
-bool AChessPlayerController::ShouldPromotePawn()
+bool AChessPlayerController::ShouldPromotePawn(ABaseChessPiece* ChessPiece)
 {
-    if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(SelectedPiece))
+    if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(ChessPiece))
     {
         if(PawnPiece->GetCurrentPosition().Y == 0 || PawnPiece->GetCurrentPosition().Y == 7)
         {
@@ -346,7 +329,8 @@ bool AChessPlayerController::HasEnemyLost()
     if(EnemyKing->IsChecked())
     {
         UE_LOG(LogTemp, Warning, TEXT("%s King is in CHECK!"), *EnemySide.ToString());
-        if(GetAllValidMoves(false).Num() == 0)
+
+        if((EnemySide == "White" ? GetAllValidMoves(true).Num() : GetAllValidMoves(false).Num())  == 0)
         {
             return true;
         }
@@ -424,9 +408,19 @@ void AChessPlayerController::SpawnPromotedPawn()
         {
             BeginNextTurn();
         }
-        
     }
-    
+}
+
+void AChessPlayerController::SpawnPromotedPawn(ABaseChessPiece* ChessPiece)
+{
+    if(ChessPiece)
+    {
+        FIntPoint SpawnIndex = ChessPiece->GetCurrentPosition();
+        //Destroy Pawn
+        ChessPiece->Destroy();
+        //Spawn chosen chess piece and set selectedpiece to chosen piece
+        ChessPiece = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotion, ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator));
+    }
 }
 
 void AChessPlayerController::RandomAIMove()
@@ -455,11 +449,11 @@ void AChessPlayerController::RandomAIMove()
             CheckSpecialMoves(NewIndex, ChessPiece);
             UpdateSelectedPieceLocation(NewIndex, ChessPiece);
 
-            if(ShouldPromotePawn())
+            if(ShouldPromotePawn(ChessPiece))
             {
                 SetAIPawnPromotion();
-                SpawnPromotedPawn();
-            }   
+                SpawnPromotedPawn(ChessPiece);
+            }
         }
     }
     else
@@ -474,40 +468,63 @@ void AChessPlayerController::RandomAIMove()
     }
 }
 
-int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst)
-{
-    ChessMove TempMove;
+ChessMove AChessPlayerController::MinimaxRoot(int depth, bool MaximizingPlayer)
+{   
+    int MaxEval = -infinity;
+    int MinEval = infinity;
+    ChessMove BestMove;
+    for(ChessMove& move : GetAllValidMoves(MaximizingPlayer))
+    {   
+        SimulateMove(move.ChessPiece, move.NewPosition);
+        int eval = Minimax(depth - 1, !MaximizingPlayer, -infinity, infinity);
+        if(MaximizingPlayer)
+        {
+            MaxEval = FGenericPlatformMath::Max(MaxEval, eval);
+            if(eval == MaxEval)
+            {
+                BestMove = move;
+            }
+        }
+        else
+        {
+            MinEval = FGenericPlatformMath::Min(MinEval, eval);
+            if(eval == MinEval)
+            {
+                BestMove = move;
+            }
+        }
+        UndoMove();
+    }
+    return BestMove;
+}
 
-    if(depth == 0) // or game over when in position
+int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha, int beta)
+{
+    if(depth == 0) // or game over
     {
-        SynchronizeChessPieces();
+        //SynchronizeChessPieces();
+        
         return ChessBoard->Evaluate();
     }
-    else if(GetAllValidMoves(true).Num() == 0)
-    {
-        return -10000;
-    }
-    else if(GetAllValidMoves(false).Num() == 0)
-    {
-        return 10000;
-    }
+    // if(GetAllValidMoves(true).Num() == 0)
+    // {
+    //     return -infinity;
+    // }
+    // else if(GetAllValidMoves(false).Num() == 0)
+    // {
+    //     return infinity;
+    // }
 
     if(MaximizingPlayer)
     {
-        int MaxEval = -10000;
-        for(ChessMove& move : GetAllValidMoves(true))
+        int MaxEval = -infinity;
+        for(ChessMove& move : GetAllValidMoves(MaximizingPlayer))
         {
             SimulateMove(move.ChessPiece, move.NewPosition);
 
-            int eval = Minimax(depth - 1, false, alpha, beta, false);
+            int eval = Minimax(depth - 1, false, alpha, beta);
             MaxEval = FGenericPlatformMath::Max(MaxEval, eval);
             alpha = FGenericPlatformMath::Max(alpha, eval);
-            
-            if(eval == MaxEval)
-            {
-                TempMove.ChessPiece = move.ChessPiece;
-                TempMove.NewPosition = move.NewPosition;
-            }
 
             UndoMove();
         
@@ -515,30 +532,20 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
             {
                 break;
             }
-
         }
-        if(IsFirst)
-        {
-            GeneratedMove = TempMove;
-        }
+        //UE_LOG(LogTemp, Display, TEXT("White Move: %s to %s Eval : %d"), *TempMove.ChessPiece->GetActorNameOrLabel(), *TempMove.NewPosition.ToString(), MaxEval);
         return MaxEval;
     }
     else
     {
-        int MinEval = 10000;
-        for(ChessMove& move : GetAllValidMoves(false))
+        int MinEval = infinity;
+        for(ChessMove& move : GetAllValidMoves(MaximizingPlayer))
         {
             SimulateMove(move.ChessPiece, move.NewPosition);
 
-            int eval = Minimax(depth - 1, true, alpha, beta, false);
+            int eval = Minimax(depth - 1, true, alpha, beta);
             MinEval = FGenericPlatformMath::Min(MinEval, eval);
             beta = FGenericPlatformMath::Min(beta, eval);
-
-            if(eval == MinEval)
-            {
-                TempMove.ChessPiece = move.ChessPiece;
-                TempMove.NewPosition = move.NewPosition;
-            }
 
             UndoMove();
 
@@ -547,20 +554,17 @@ int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha,
                 break;
             }
         }
-        if(IsFirst)
-        {
-            GeneratedMove = TempMove;
-        }
+        //UE_LOG(LogTemp, Display, TEXT("Black Move: %s to %s Eval : %d"), *TempMove.ChessPiece->GetActorNameOrLabel(), *TempMove.NewPosition.ToString(), MinEval);
         return MinEval;
     }
 }
 
 void AChessPlayerController::GenerateMove()
 {   
-    const int infinity = 10000;
+    ChessMove GeneratedMove;
     if(CurrentSide == "White")
     {
-        Minimax(MinimaxDepth, true, -infinity, infinity, true);
+        GeneratedMove = MinimaxRoot(MinimaxDepth, true);
     }
     else
     {
@@ -569,33 +573,51 @@ void AChessPlayerController::GenerateMove()
         {
             UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString());
         }
-        Minimax(MinimaxDepth, false, -infinity, infinity, true);
+        GeneratedMove = MinimaxRoot(MinimaxDepth, false);
     }
     if(GeneratedMove.ChessPiece)
     {
         UE_LOG(LogTemp, Warning, TEXT("Chosen Actor %s Chosen Index %s"), *GeneratedMove.ChessPiece->GetActorNameOrLabel(), *GeneratedMove.NewPosition.ToString());
         CheckSpecialMoves(GeneratedMove.NewPosition, GeneratedMove.ChessPiece);
         UpdateSelectedPieceLocation(GeneratedMove.NewPosition, GeneratedMove.ChessPiece);
-    }
 
-    GeneratedMove.reset();
+        if(ShouldPromotePawn(GeneratedMove.ChessPiece))
+        {
+            SetAIPawnPromotion();
+            SpawnPromotedPawn(GeneratedMove.ChessPiece);
+        }
+    }
 
     if(AIvsAI)
     {
         SwitchSides();
     }
-    
 }
 
 void AChessPlayerController::SynchronizeChessPieces() const
 {
-    TArray<AActor*> chesspieces;
-    UGameplayStatics::GetAllActorsOfClass(this, ABaseChessPiece::StaticClass(), chesspieces);
-    for(AActor* piece : chesspieces)
+    TArray<AActor*> ChessPieces;
+    TArray<FIntPoint> ChessPiecesLocations;
+    UGameplayStatics::GetAllActorsOfClass(this, ABaseChessPiece::StaticClass(), ChessPieces);
+    for(AActor* piece : ChessPieces)
     {
-        if(ABaseChessPiece* chesspiece = Cast<ABaseChessPiece>(piece))
+        if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(piece))
         {
-            chesspiece->SynchronizePosition();
+            ChessPiece->SynchronizePosition();
+            ChessPiecesLocations.Emplace(ChessPiece->GetCurrentPosition());
+        }
+    }
+    if(ChessBoard)
+    {
+        for(int i{}; i < AChessBoard::BoardHeight; i++)
+        {
+            for(int j{}; j < AChessBoard::BoardLength; j++)
+            {
+                if(!ChessPiecesLocations.Contains(FIntPoint(i, j)))
+                {
+                    ChessBoard->SetChessPiece(FIntPoint(i, j), nullptr);
+                }
+            }
         }
     }
 }
@@ -628,7 +650,6 @@ void AChessPlayerController::SetPawnPromotion(TSubclassOf<ABaseChessPiece> Chose
 void AChessPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
-
     if(UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
     {
         EnhancedInputComponent->BindAction(SelectPieceAction, ETriggerEvent::Started, this, &AChessPlayerController::SelectPiece);

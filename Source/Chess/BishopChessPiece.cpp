@@ -3,6 +3,7 @@
 
 #include "BishopChessPiece.h"
 #include "ChessBoard.h"
+#include "Kismet/KismetMathLibrary.h"
 
 TArray<FIntPoint> ABishopChessPiece::GetPossibleMovePositions()
 {
@@ -57,5 +58,5 @@ TArray<FIntPoint> ABishopChessPiece::GetPossibleMovePositions()
 
 int ABishopChessPiece::GetValue() const 
 {
-     return Super::GetValue() * 3;
+    return Super::GetValue() * 300 + (Side == "White" ? BishopPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -BishopPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
 }

@@ -27,7 +27,9 @@
       "limits": "cpp",
       "valarray": "cpp",
       "random": "cpp",
-      "utility": "cpp"
+      "utility": "cpp",
+      "__locale": "cpp",
+      "xlocale": "cpp"
     }
   },
   "extensions": {

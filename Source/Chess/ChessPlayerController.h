@@ -24,12 +24,6 @@ struct ChessMove
 		ChessPiece = piece;
 		NewPosition = index;
 	}
-
-	void reset()
-	{
-		ChessPiece = nullptr;
-		NewPosition = {0, 0};
-	}
 };
 
 UCLASS()
@@ -96,7 +90,7 @@ private:
 	void SwitchSides();
 	void BeginNextTurn();
 	void UpdateSelectedPieceLocation(FIntPoint NewIndex, ABaseChessPiece* ChessPiece);
-	bool ShouldPromotePawn();
+	bool ShouldPromotePawn(ABaseChessPiece* ChessPiece);
 
 	bool HasEnemyLost();
 
@@ -120,6 +114,8 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnPromotedPawn();
 
+	void SpawnPromotedPawn(ABaseChessPiece* ChessPiece);
+
 	
 
 	class AKingChessPiece* WhiteKing;
@@ -130,10 +126,11 @@ private:
 	//Move Generation
 	UPROPERTY(EditAnywhere)
 	int MinimaxDepth = 4;
-	ChessMove GeneratedMove;
-	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
+	ChessMove MinimaxRoot(int depth, bool MaximizingPlayer);
+	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta);
 	void RandomAIMove();
 	void GenerateMove();
+	const int infinity = 10000;
 	
 	
 	void SynchronizeChessPieces() const;

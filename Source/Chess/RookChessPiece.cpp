@@ -3,6 +3,7 @@
 
 #include "RookChessPiece.h"
 #include "ChessBoard.h"
+#include "Kismet/KismetMathLibrary.h"
 
 TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
 {
@@ -57,5 +58,5 @@ TArray<FIntPoint> ARookChessPiece::GetPossibleMovePositions()
 
 int ARookChessPiece::GetValue() const 
 {
-    return Super::GetValue() * 5;
+    return Super::GetValue() * 500 + (Side == "White" ? RookPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -RookPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
 }
