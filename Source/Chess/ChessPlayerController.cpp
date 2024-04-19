@@ -480,6 +480,7 @@ ChessMove AChessPlayerController::MinimaxRoot(int depth, bool MaximizingPlayer)
         if(MaximizingPlayer)
         {
             MaxEval = FGenericPlatformMath::Max(MaxEval, eval);
+            UE_LOG(LogTemp, Warning, TEXT("Move: %s to %s Eval: %d"), *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval);
             if(eval == MaxEval)
             {
                 BestMove = move;
@@ -488,6 +489,7 @@ ChessMove AChessPlayerController::MinimaxRoot(int depth, bool MaximizingPlayer)
         else
         {
             MinEval = FGenericPlatformMath::Min(MinEval, eval);
+            UE_LOG(LogTemp, Warning, TEXT("Move: %s to %s Eval: %d"), *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval);
             if(eval == MinEval)
             {
                 BestMove = move;
