@@ -28,7 +28,7 @@ TArray<FIntPoint> APawnChessPiece::GetPossibleMovePositions()
                 {
                     if(EnPassantPawn == Cast<APawnChessPiece>(ChessBoard->GetChessPiece(CurrentPosition + FIntPoint(i, 0))))
                     {
-                        PossibleMoves.Emplace(CurrentPosition + FIntPoint(i, 1));
+                        PossibleMoves.Emplace(CurrentPosition + FIntPoint(i, Direction));
                     }
                 }
                 
@@ -52,7 +52,7 @@ TArray<FIntPoint> APawnChessPiece::GetPossibleMovePositionsForEnemy()
     {
         for (int i{-1}; i <= 1; i+=2)
         {
-            if(IsLocationValid(CurrentPosition + FIntPoint(i, Direction)))
+            if(IsIndexValid(CurrentPosition + FIntPoint(i, Direction)))
             {
                 PossibleMoves.Emplace(CurrentPosition + FIntPoint(i, Direction));
             }
@@ -75,7 +75,7 @@ void APawnChessPiece::SetCurrentPosition(FIntPoint NewPosition)
                 if(APawnChessPiece* AdjacentPawn = Cast<APawnChessPiece>(ChessBoard->GetChessPiece(CurrentPosition + FIntPoint(i, Direction * 2))))
                 {
                     //check if adjacent pawns are on enemy side
-                    if(AdjacentPawn->ActorHasTag(EnemySide))
+                    if(AdjacentPawn->IsWhite() != bIsWhite)
                     {
                         //SetEnPassant for adjacent enemy pawn
                         AdjacentPawn->SetEnPassant(this);
@@ -101,7 +101,12 @@ void APawnChessPiece::MoveChessPiece(FIntPoint NewPosition)
 
 int APawnChessPiece::GetValue() const
 {
-    return Super::GetValue() * 100 + (Side == "White" ? PawnPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -PawnPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
+    return Super::GetValue() * 100 + (bIsWhite ? PawnPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -PawnPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
+}
+
+void APawnChessPiece::ResetEnPassant()
+{
+    EnPassantPawn = nullptr;
 }
 
 void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)
@@ -113,7 +118,7 @@ void APawnChessPiece::SetEnPassant(APawnChessPiece* PassedPawn)
 void APawnChessPiece::BeginPlay()
 {
     Super::BeginPlay();
-    if(Side == "Black")
+    if(!bIsWhite)
     {
         Direction = -1;
     }
@@ -121,4 +126,9 @@ void APawnChessPiece::BeginPlay()
     {
         Direction = 1;
     }
+}
+
+APawnChessPiece::APawnChessPiece()
+{
+    ChessPieceType = Type::Pawn;
 }

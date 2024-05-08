@@ -15,7 +15,11 @@ class CHESS_API ABishopChessPiece : public ABaseChessPiece
 	GENERATED_BODY()
 	
 public:
+	ABishopChessPiece();
+
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
+
+	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
 
 	virtual int GetValue() const override;
 

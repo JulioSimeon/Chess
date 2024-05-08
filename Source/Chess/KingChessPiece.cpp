@@ -13,11 +13,10 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
     {
         int XOffset[] = {1, 0, 0, -1, 1, -1, -1, 1};
         int YOffset[] = {0, 1, -1, 0, 1, 1, -1, -1};
-        TArray<FIntPoint> PossibleEnemyMoves = GetPossibleMovesOfEnemyPieces();
 
         for(int i{}; i < AChessBoard::BoardLength; i++)
         {
-            if(IsLocationValid(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i])) && !PossibleEnemyMoves.Contains(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i])))
+            if(IsLocationValid(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i]))) //&& !PossibleEnemyMoves.Contains(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i]))
             {
                 PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i]));
             }
@@ -34,7 +33,7 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
         {
             for(int i = 0, j = -1; i <= 7; i += 7, j *= -1)
             {
-                if(ABaseChessPiece* CastledRook = Cast<ABaseChessPiece>(ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y))))
+                if(ABaseChessPiece* CastledRook = ChessBoard->GetChessPiece(FIntPoint(i, CurrentPosition.Y)))
                 {
                     //if said rook is in first move (then it is a rook) and King's new position is not under possiblenemymoves (it will not be checkmated)
                     if(CastledRook->IsFirstMove())
@@ -76,7 +75,7 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositionsForEnemy()
 
         for(int i{}; i < AChessBoard::BoardLength; i++)
         {
-            if(IsLocationValid(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i])))
+            if(IsIndexValid(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i])))
             {
                 PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + XOffset[i], CurrentPosition.Y + YOffset[i]));
             }
@@ -96,37 +95,12 @@ bool AKingChessPiece::IsCastling() const
     return bIsCastling;
 }
 
-bool AKingChessPiece::IsChecked() const
-{
-    TArray<FIntPoint> PossibleEnemyMoves = GetPossibleMovesOfEnemyPieces();
-    for(FIntPoint& index : PossibleEnemyMoves)
-    {
-        if(index == GetCurrentPosition())
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 int AKingChessPiece::GetValue() const 
 {
-    return (Side == "White" ? KingPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -KingPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
+    return (bIsWhite ? KingPieceSquareTable[CurrentPosition.X][CurrentPosition.Y] : -KingPieceSquareTable[UKismetMathLibrary::Abs_Int(7 -CurrentPosition.X)][UKismetMathLibrary::Abs_Int(7 -CurrentPosition.Y)]);
 }
 
-TArray<FIntPoint> AKingChessPiece::GetPossibleMovesOfEnemyPieces() const
+AKingChessPiece::AKingChessPiece()
 {
-    TArray<FIntPoint> EnemyMoves;
-    TArray<AActor*> EnemyPieces;
-    UGameplayStatics::GetAllActorsWithTag(this, EnemySide, EnemyPieces);
-    
-    for(AActor* EnemyPiece : EnemyPieces)
-    {
-        if(ABaseChessPiece* Enemy = Cast<ABaseChessPiece>(EnemyPiece))
-        {
-            
-            EnemyMoves.Append(Enemy->GetPossibleMovePositionsForEnemy());
-        }
-    }
-    return EnemyMoves;
+    ChessPieceType = Type::King;
 }

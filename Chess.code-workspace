@@ -29,7 +29,9 @@
       "random": "cpp",
       "utility": "cpp",
       "__locale": "cpp",
-      "xlocale": "cpp"
+      "xlocale": "cpp",
+      "*.rh": "cpp",
+      "__config": "cpp"
     }
   },
   "extensions": {

@@ -15,9 +15,13 @@ class CHESS_API ARookChessPiece : public ABaseChessPiece
 	GENERATED_BODY()
 	
 public:
+	ARookChessPiece();
+
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
 
 	virtual int GetValue() const override;
+
+	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
 
 private:
 	int RookPieceSquareTable[8][8]

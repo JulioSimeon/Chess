@@ -8,7 +8,7 @@
 
 struct BoardSquare
 {
-	AActor* ChessPiece = nullptr;
+	class ABaseChessPiece* ChessPiece = nullptr;
 	FVector Location = FVector::ZeroVector;
 	BoardSquare()
 	{
@@ -31,13 +31,17 @@ public:
 
 	FVector GetLocation(FIntPoint index) const;
 
-	void SetChessPiece(FIntPoint index, AActor* ChessPiece);
+	void SetChessPiece(FIntPoint index, ABaseChessPiece* ChessPiece);
 
-	AActor* GetChessPiece(FIntPoint index) const;
-
-	bool IsOccupied(FIntPoint index) const;
-
+	ABaseChessPiece* GetChessPiece(FIntPoint index) const;
+	
 	FIntPoint GetIndex(FVector location) const;
+
+	TArray<ABaseChessPiece*> GetChessPieces(bool IsWhite);
+
+	void RemoveChessPiece(ABaseChessPiece* ChessPiece);
+
+	void ReviveChessPiece(ABaseChessPiece* ChessPiece);
 
 	int Evaluate() const;
 
@@ -56,10 +60,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	//TArray<BoardSquare> BoardArray;
-
 	BoardSquare BoardArray[8][8];
 
 	void InitializeBoard();
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> BlackChessPieces;
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> WhiteChessPieces;
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> CapturedChessPieces;
 	
 };

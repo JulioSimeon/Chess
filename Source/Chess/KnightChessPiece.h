@@ -15,9 +15,13 @@ class CHESS_API AKnightChessPiece : public ABaseChessPiece
 	GENERATED_BODY()
 		
 public:
+	AKnightChessPiece();
+
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
 
 	virtual int GetValue() const override;
+
+	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
 
 private:
 	int KnightPieceSquareTable[8][8]

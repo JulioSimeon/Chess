@@ -15,6 +15,8 @@ class CHESS_API APawnChessPiece : public ABaseChessPiece
 	GENERATED_BODY()
 	
 public:
+	APawnChessPiece();
+
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
 
 	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
@@ -27,13 +29,18 @@ public:
 
 	virtual int GetValue() const override;
 
+	void ResetEnPassant();
+
+	void SetEnPassant(APawnChessPiece* PassedPawn);
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	int Direction;
+	UPROPERTY(VisibleAnywhere)
 	APawnChessPiece* EnPassantPawn;
-	void SetEnPassant(APawnChessPiece* PassedPawn);
+	
 
 	int PawnPieceSquareTable[8][8]
 	{

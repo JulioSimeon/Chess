@@ -27,17 +27,6 @@ void ABaseChessPiece::BeginPlay()
         ChessBoard = Cast<AChessBoard>(ChessBoards[0]);
     }
 	InitializeCurrentPosition();
-	
-	Side = Tags[0];
-
-	if(Side == "White")
-	{
-		EnemySide = "Black";
-	}
-	else if(Side == "Black")
-	{
-		EnemySide = "White";
-	}
 }
 
 bool ABaseChessPiece::IsLocationValid(FIntPoint Index) const
@@ -50,9 +39,9 @@ bool ABaseChessPiece::IsLocationValid(FIntPoint Index) const
 			{
 				return true;
 			}
-			else if(ChessBoard->GetChessPiece(Index))
+			else
 			{
-				return !(ChessBoard->GetChessPiece(Index)->ActorHasTag(Side));
+				return (ChessBoard->GetChessPiece(Index)->IsWhite() != bIsWhite);
 			}
     	}
 	}
@@ -60,9 +49,26 @@ bool ABaseChessPiece::IsLocationValid(FIntPoint Index) const
     return false;
 }
 
+bool ABaseChessPiece::IsIndexValid(FIntPoint Index) const
+{
+	if(ChessBoard)
+    {
+		if(Index.X >= 0 && Index.X < AChessBoard::BoardLength && Index.Y >= 0 && Index.Y < AChessBoard::BoardHeight)
+		{
+			return true;
+    	}
+	}
+    return false;
+}
+
 bool ABaseChessPiece::IsFirstMove() const
 {
 	return bIsFirstMove;
+}
+
+void ABaseChessPiece::SetIsFirstMove(bool NewIsFirstMove)
+{
+	bIsFirstMove = NewIsFirstMove;
 }
 
 void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
@@ -73,7 +79,7 @@ void ABaseChessPiece::MoveChessPiece(FIntPoint NewPosition)
 
 int ABaseChessPiece::GetValue() const
 {
-	return (Side == "White" ? 1 : -1);
+	return (bIsWhite ? 1 : -1);
 }
 
 void ABaseChessPiece::SynchronizePosition()
@@ -82,6 +88,21 @@ void ABaseChessPiece::SynchronizePosition()
 	{
 		ChessBoard->SetChessPiece(CurrentPosition, this);
 	}
+}
+
+bool ABaseChessPiece::IsSlidingPiece() const
+{
+	return ChessPieceType == Type::Bishop || ChessPieceType == Type::Queen || ChessPieceType == Type::Rook;
+}
+
+Type ABaseChessPiece::GetType() const
+{
+	return ChessPieceType;
+}
+
+bool ABaseChessPiece::IsWhite() const
+{
+	return bIsWhite;
 }
 
 TArray<FIntPoint> ABaseChessPiece::GetPossibleMovePositions()
@@ -103,11 +124,6 @@ TArray<FIntPoint> ABaseChessPiece::GetPossibleMovePositionsForEnemy()
 void ABaseChessPiece::SetCurrentPosition(FIntPoint NewPosition)
 {
 	CurrentPosition = NewPosition;
-}
-
-FName ABaseChessPiece::GetSide() const
-{
-	return Side;
 }
 
 // Called every frame

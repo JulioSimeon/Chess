@@ -6,6 +6,16 @@
 #include "GameFramework/Actor.h"
 #include "BaseChessPiece.generated.h"
 
+enum class Type
+{
+	Pawn,
+	Knight,
+	Bishop,
+	Rook,
+	Queen,
+	King,
+};
+
 UCLASS()
 class CHESS_API ABaseChessPiece : public AActor
 {
@@ -22,10 +32,10 @@ public:
 	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy();
 
 	virtual void SetCurrentPosition(FIntPoint NewPosition);
-	
-	FName GetSide() const;
 
 	bool IsFirstMove() const;
+
+	void SetIsFirstMove(bool NewIsFirstMove);
 
 	virtual void MoveChessPiece(FIntPoint NewPosition);
 
@@ -33,23 +43,32 @@ public:
 
 	void SynchronizePosition();
 
+	bool IsSlidingPiece() const;
+
+	Type GetType() const;
+
+	bool IsWhite() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	bool IsLocationValid(FIntPoint Index) const;
 
+	bool IsIndexValid(FIntPoint Index) const;
+
 	class AChessBoard* ChessBoard;
 
 	UPROPERTY(VisibleAnywhere)
 	FIntPoint CurrentPosition;
 
-	FName Side;
-
-	FName EnemySide;
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsWhite;
 	
 	UPROPERTY(VisibleAnywhere)
 	bool bIsFirstMove = true;
+
+	Type ChessPieceType;
 
 public:	
 	// Called every frame

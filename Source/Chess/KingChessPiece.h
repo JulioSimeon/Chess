@@ -15,6 +15,8 @@ class CHESS_API AKingChessPiece : public ABaseChessPiece
 	GENERATED_BODY()
 	
 public:
+	AKingChessPiece();
+
 	virtual TArray<FIntPoint> GetPossibleMovePositions() override;
 
 	virtual TArray<FIntPoint> GetPossibleMovePositionsForEnemy() override;
@@ -23,13 +25,10 @@ public:
 
 	bool IsCastling() const;
 
-	bool IsChecked() const;
-
 	virtual int GetValue() const override;
 
 private:
-	TArray<FIntPoint> GetPossibleMovesOfEnemyPieces() const;
-
+	UPROPERTY(VisibleAnywhere)
 	bool bIsCastling = false;
 
 	int KingPieceSquareTable[8][8]

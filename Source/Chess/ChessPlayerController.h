@@ -56,10 +56,10 @@ protected:
 
 
 private:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName CurrentSide;
-
-	FName EnemySide;
+	bool CurrentSide;
+	//true = white / false = black
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> ValidCaptureSquare;
@@ -89,24 +89,32 @@ private:
 	void DeleteValidMoveSquares();
 	void SwitchSides();
 	void BeginNextTurn();
-	void UpdateSelectedPieceLocation(FIntPoint NewIndex, ABaseChessPiece* ChessPiece);
 	bool ShouldPromotePawn(ABaseChessPiece* ChessPiece);
 
-	bool HasEnemyLost();
+	bool HasEnemyLost(bool IsWhite);
 
 	//Move Simulation
-	void SimulateMove(ABaseChessPiece* ChessPiece, FIntPoint NewIndex);
-	void UndoMove();
-	int SimulateIndex{};
-	TArray<ABaseChessPiece*> SimulatedMovedPieces;
-	TArray<ABaseChessPiece*> SimulatedCapturedPieces;
+	void MakeMove(ABaseChessPiece* ChessPiece, FIntPoint NewIndex, bool IsSimulate);
+	void UndoMove(bool IsSimulate);
+	UPROPERTY(VisibleAnywhere)
+	int MoveIndex{};
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> MovedPieces;
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> CapturedPieces;
+	UPROPERTY(VisibleAnywhere)
 	TArray<FIntPoint> OriginalLocations;
+	UPROPERTY(VisibleAnywhere)
 	TArray<FIntPoint> NewLocations;
-	TArray<FName> OriginalCapturedPieceSide;
+	UPROPERTY(VisibleAnywhere)
+	TArray<bool> FirstMove;
+	TArray<TArray<class APawnChessPiece*>> PawnsWithEnPassant;
+	UPROPERTY(VisibleAnywhere)
+	TArray<class APawnChessPiece*> EnPassantPawns;
+	UPROPERTY(VisibleAnywhere)
+	TArray<bool> Castled;
 
 	TArray<FIntPoint> GetValidMoves(ABaseChessPiece* ChessPiece);
-
-	void CheckSpecialMoves(FIntPoint index, ABaseChessPiece* ChessPiece);
 
 	UFUNCTION(BlueprintCallable)
 	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
@@ -120,8 +128,6 @@ private:
 
 	class AKingChessPiece* WhiteKing;
 	AKingChessPiece* BlackKing;
-	AKingChessPiece* CurrentKing;
-	AKingChessPiece* EnemyKing;
 
 	//Move Generation
 	UPROPERTY(EditAnywhere)
@@ -145,4 +151,26 @@ private:
 	UPROPERTY(EditAnywhere)
 	float AIRate;
 	FTimerHandle AIvsAITimerHandle;
+
+	//GettingValidMoves
+	TArray<FIntPoint> GetPossibleMovesOfEnemyPieces(bool IsWhite) const;
+	bool IsKingInCheck(bool IsWhite, TArray<FIntPoint> EnemyMoves) const;
+	//TArray<FIntPoint> EnemyMoves;
+	
+	ABaseChessPiece* KingChecker;
+
+	//Temp
+	int CursedMinimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
+	ChessMove GeneratedMoveTemp;
+	bool first = true;
+	UPROPERTY(EditAnywhere)
+	bool TestCursedMinimax;
+	int MoveGenerationTest(int depth, bool White);
+	UPROPERTY(EditAnywhere)
+	int MoveGenerationTestDepth;
+	UPROPERTY(EditAnywhere)
+	bool TestMoveGeneration;
+	void ResetAllEnPassant(bool IsWhite);
+
+	class TArray<APawnChessPiece*> GetPawnsWithEnPassant(bool IsWhite);
 };

@@ -3,6 +3,7 @@
 
 #include "ChessBoard.h"
 #include "BaseChessPiece.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AChessBoard::AChessBoard()
@@ -18,19 +19,14 @@ FVector AChessBoard::GetLocation(FIntPoint index) const
 	return BoardArray[index.X][index.Y].Location;
 }
 
-void AChessBoard::SetChessPiece(FIntPoint index, AActor* ChessPiece)
+void AChessBoard::SetChessPiece(FIntPoint index, ABaseChessPiece* ChessPiece)
 {
 	BoardArray[index.X][index.Y].ChessPiece = ChessPiece;
 }
 
-AActor* AChessBoard::GetChessPiece(FIntPoint index) const
+ABaseChessPiece* AChessBoard::GetChessPiece(FIntPoint index) const
 {
 	return BoardArray[index.X][index.Y].ChessPiece;
-}
-
-bool AChessBoard::IsOccupied(FIntPoint index) const
-{
-	return BoardArray[index.X][index.Y].ChessPiece != nullptr;
 }
 
 FIntPoint AChessBoard::GetIndex(FVector location) const
@@ -49,6 +45,21 @@ FIntPoint AChessBoard::GetIndex(FVector location) const
 	return FIntPoint(-1, -1);
 }
 
+void AChessBoard::RemoveChessPiece(ABaseChessPiece* ChessPiece)
+{
+	ChessPiece->IsWhite() ? WhiteChessPieces.Remove(ChessPiece) : BlackChessPieces.Remove(ChessPiece);
+	CapturedChessPieces.Add(ChessPiece);
+}
+
+void AChessBoard::ReviveChessPiece(ABaseChessPiece* ChessPiece)
+{
+	if(CapturedChessPieces.Contains(ChessPiece))
+	{
+		CapturedChessPieces.Remove(ChessPiece);
+		ChessPiece->IsWhite() ? WhiteChessPieces.Add(ChessPiece) : BlackChessPieces.Add(ChessPiece);
+	}
+}
+
 int AChessBoard::Evaluate() const
 {
 	int total{};
@@ -56,13 +67,18 @@ int AChessBoard::Evaluate() const
 	{
 		for(int j{}; j < BoardLength; j++)
 		{
-			if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(BoardArray[i][j].ChessPiece))
+			if(ABaseChessPiece* ChessPiece = BoardArray[i][j].ChessPiece)
 			{
 				total += ChessPiece->GetValue();
 			}
 		}
 	}
 	return total;
+}
+
+TArray<ABaseChessPiece*> AChessBoard::GetChessPieces(bool IsWhite)
+{
+	return IsWhite ? WhiteChessPieces : BlackChessPieces;
 }
 
 void AChessBoard::PrintChessPieces()
@@ -73,14 +89,14 @@ void AChessBoard::PrintChessPieces()
 	{
 		for(int j{}; j < BoardLength; j++)
 		{
-			if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(BoardArray[i][j].ChessPiece))
+			if(ABaseChessPiece* ChessPiece = BoardArray[i][j].ChessPiece)
 			{
 				UE_LOG(LogTemp, Display, TEXT("%s at %d, %d"), *ChessPiece->GetActorNameOrLabel(), i, j);
-				if(ChessPiece->GetSide() == "White")
+				if(ChessPiece->IsWhite())
 				{
 					whitecount++;
 				}
-				else if(ChessPiece->GetSide() == "Black")
+				else
 				{
 					blackcount++;
 				}
@@ -94,13 +110,23 @@ void AChessBoard::PrintChessPieces()
 void AChessBoard::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Initialize white chess and black chess pieces
+	TArray<AActor*> ChessPieces;
+	UGameplayStatics::GetAllActorsOfClass(this, ABaseChessPiece::StaticClass(), ChessPieces);
+	for(auto piece : ChessPieces)
+	{
+		if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(piece))
+		{
+			ChessPiece->IsWhite() ? WhiteChessPieces.Add(ChessPiece) : BlackChessPieces.Add(ChessPiece);
+		}
+	}
 }
 
 // Called every frame
 void AChessBoard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AChessBoard::InitializeBoard()
@@ -116,7 +142,7 @@ void AChessBoard::InitializeBoard()
 		{
 			BoardArray[j][i] = BoardSquare(FVector(ColumnLocation, RowLocation, Height));
 			ColumnLocation += Offset;
-			UE_LOG(LogTemp, Display, TEXT("Location: %s, Index: %s"), *BoardArray[i][j].Location.ToString(), *FIntPoint(i, j).ToString());
+			//UE_LOG(LogTemp, Display, TEXT("Location: %s, Index: %s"), *BoardArray[i][j].Location.ToString(), *FIntPoint(i, j).ToString());
 		}
 		RowLocation -= Offset;
 	}
