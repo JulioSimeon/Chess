@@ -318,10 +318,12 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
                     ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), nullptr);
                     //Update location of ChessPiece to NewIndex
                     RookPiece->MoveChessPiece(NewRookIndex);
-                    ChessBoard->SetChessPiece(NewRookIndex, ChessPiece);
-                    RookPiece->SetActorLocation(ChessBoard->GetLocation(NewRookIndex));
+                    ChessBoard->SetChessPiece(NewRookIndex, RookPiece);
+                    if(!IsSimulate)
+                    {
+                        RookPiece->SetActorLocation(ChessBoard->GetLocation(NewRookIndex));
+                    }
                 }
-                
             }
             else if(NewIndex.X == 6)
             {
@@ -333,8 +335,11 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
                     ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), nullptr);
                     //Update location of ChessPiece to NewIndex
                     RookPiece->MoveChessPiece(NewRookIndex);
-                    ChessBoard->SetChessPiece(NewRookIndex, ChessPiece);
-                    RookPiece->SetActorLocation(ChessBoard->GetLocation(NewRookIndex));
+                    ChessBoard->SetChessPiece(NewRookIndex, RookPiece);
+                    if(!IsSimulate)
+                    {
+                        RookPiece->SetActorLocation(ChessBoard->GetLocation(NewRookIndex));
+                    }
                 }
             } 
         }
@@ -377,9 +382,8 @@ void AChessPlayerController::UndoMove(bool IsSimulate)
         if(MovedPieces[MoveIndex]->GetCurrentPosition().X == 2 && ChessBoard->GetChessPiece(FIntPoint(3, MovedPieces[MoveIndex]->GetCurrentPosition().Y))->GetType() == Type::Rook)
         {
             ABaseChessPiece* RookPiece = ChessBoard->GetChessPiece(FIntPoint(3, MovedPieces[MoveIndex]->GetCurrentPosition().Y));
-            
             ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), nullptr);
-            RookPiece->MoveChessPiece(FIntPoint(0, RookPiece->GetCurrentPosition().Y));
+            RookPiece->SetCurrentPosition(FIntPoint(0, RookPiece->GetCurrentPosition().Y));
             ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), RookPiece);
             RookPiece->SetIsFirstMove(true);
             if(!IsSimulate)
@@ -391,9 +395,8 @@ void AChessPlayerController::UndoMove(bool IsSimulate)
         else if(MovedPieces[MoveIndex]->GetCurrentPosition().X == 6 && ChessBoard->GetChessPiece(FIntPoint(5, MovedPieces[MoveIndex]->GetCurrentPosition().Y))->GetType() == Type::Rook)
         {
             ABaseChessPiece* RookPiece = ChessBoard->GetChessPiece(FIntPoint(5, MovedPieces[MoveIndex]->GetCurrentPosition().Y));
-            
             ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), nullptr);
-            RookPiece->MoveChessPiece(FIntPoint(7, RookPiece->GetCurrentPosition().Y));
+            RookPiece->SetCurrentPosition(FIntPoint(7, RookPiece->GetCurrentPosition().Y));
             ChessBoard->SetChessPiece(RookPiece->GetCurrentPosition(), RookPiece);
             RookPiece->SetIsFirstMove(true);
             if(!IsSimulate)

@@ -54,13 +54,14 @@ TArray<FIntPoint> AKingChessPiece::GetPossibleMovePositions()
                                 PossibleMoves.Emplace(FIntPoint(CurrentPosition.X + (2 * j), CurrentPosition.Y));
                                 bIsCastling = true;
                             }
-                            
+                            return PossibleMoves;
                         }
                     }
                 }
             }
             
         }
+        bIsCastling = false;
     }
     return PossibleMoves;
 }
