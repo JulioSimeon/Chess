@@ -43,6 +43,10 @@ public:
 
 	void ReviveChessPiece(ABaseChessPiece* ChessPiece);
 
+	void AddChessPiece(ABaseChessPiece* ChessPiece);
+
+	void DeleteChessPiece(ABaseChessPiece* ChessPiece);
+
 	int Evaluate() const;
 
 	static const int BoardHeight = 8;

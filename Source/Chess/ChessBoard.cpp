@@ -60,6 +60,16 @@ void AChessBoard::ReviveChessPiece(ABaseChessPiece* ChessPiece)
 	}
 }
 
+void AChessBoard::AddChessPiece(ABaseChessPiece* ChessPiece)
+{
+	ChessPiece->IsWhite() ? WhiteChessPieces.Add(ChessPiece) : BlackChessPieces.Add(ChessPiece);
+}
+
+void AChessBoard::DeleteChessPiece(ABaseChessPiece* ChessPiece)
+{
+	ChessPiece->IsWhite() ? WhiteChessPieces.Remove(ChessPiece) : BlackChessPieces.Remove(ChessPiece);
+}
+
 int AChessBoard::Evaluate() const
 {
 	int total{};

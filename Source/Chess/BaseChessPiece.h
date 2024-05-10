@@ -65,7 +65,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsWhite;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	bool bIsFirstMove = true;
 
 	Type ChessPieceType;

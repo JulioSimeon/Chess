@@ -42,6 +42,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UInputAction* MoveSelectedPieceAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UInputAction* UndoMoveAction;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -50,10 +53,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PromotePawn();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void SetAIPawnPromotion();
-
 
 private:
 	
@@ -64,11 +63,11 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> ValidCaptureSquare;
 
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<ABaseChessPiece>> PawnPromotionChessPieces;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> ValidMoveSquare;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<ABaseChessPiece> PawnPromotion;
 
 	class AChessGameMode* ChessGameMode;
 
@@ -112,15 +111,14 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TArray<class APawnChessPiece*> EnPassantPawns;
 	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseChessPiece*> PromotedPawns;
+	UPROPERTY(VisibleAnywhere)
 	TArray<bool> Castled;
 
 	TArray<FIntPoint> GetValidMoves(ABaseChessPiece* ChessPiece);
 
 	UFUNCTION(BlueprintCallable)
-	void SetPawnPromotion(TSubclassOf<class ABaseChessPiece> ChosenPiece);
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnPromotedPawn();
+	void SpawnPromotedPawn(int index);
 
 	void SpawnPromotedPawn(ABaseChessPiece* ChessPiece);
 
@@ -173,4 +171,6 @@ private:
 	void ResetAllEnPassant(bool IsWhite);
 
 	class TArray<APawnChessPiece*> GetPawnsWithEnPassant(bool IsWhite);
+
+	void UndoActualMove();
 };

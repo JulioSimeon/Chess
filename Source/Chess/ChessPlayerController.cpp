@@ -166,16 +166,6 @@ void AChessPlayerController::MoveSelectedPiece()
                 {
                     MakeMove(SelectedPiece, index, false);
                 }
-
-                //Pawn Promotion Special Move
-                //Check if Pawn has reached end of chessboard
-                if(ShouldPromotePawn(SelectedPiece))
-                {
-                    //Spawn Widget
-                    //User chooses which chess piece pawn will be promoted to
-                    PromotePawn();
-                    return;
-                }   
             }
             BeginNextTurn();
         }
@@ -237,9 +227,9 @@ void AChessPlayerController::BeginNextTurn()
 
 bool AChessPlayerController::ShouldPromotePawn(ABaseChessPiece* ChessPiece)
 {
-    if(APawnChessPiece* PawnPiece = Cast<APawnChessPiece>(ChessPiece))
+    if(ChessPiece->GetType() == Type::Pawn)
     {
-        if(PawnPiece->GetCurrentPosition().Y == 0 || PawnPiece->GetCurrentPosition().Y == 7)
+        if(ChessPiece->GetCurrentPosition().Y == 0 || ChessPiece->GetCurrentPosition().Y == 7)
         {
             return true;
         }
@@ -276,6 +266,7 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
     OriginalLocations.EmplaceAt(MoveIndex, ChessPiece->GetCurrentPosition());
     FirstMove.EmplaceAt(MoveIndex, ChessPiece->IsFirstMove());
     Castled.EmplaceAt(MoveIndex, false);
+    PromotedPawns.EmplaceAt(MoveIndex, nullptr);
 
     //if move location has an enemy piece
     ABaseChessPiece* EnemyPiece = ChessBoard->GetChessPiece(NewIndex);
@@ -369,13 +360,34 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
         pawn->ResetEnPassant();
     }
     //ResetAllEnPassant(ChessPiece->IsWhite());
+    //Pawn Promotion Special Move
+    //Check if Pawn has reached end of chessboard
+    if(ShouldPromotePawn(ChessPiece))
+    {
+        //Spawn Widget
+        //User chooses which chess piece pawn will be promoted to
+        PromotedPawns[MoveIndex] = ChessPiece;
+        //if Player's turn promote pawn else computer's turn
+        SelectedPiece ? PromotePawn() : SpawnPromotedPawn(ChessPiece);
+    }   
     MoveIndex++;
-    
 }
 
 void AChessPlayerController::UndoMove(bool IsSimulate)
 {
     MoveIndex--;
+    
+    //Undo pawn promotion if occured
+    if(PromotedPawns[MoveIndex])
+    {
+        if(ABaseChessPiece* PromotedPawn = ChessBoard->GetChessPiece(NewLocations[MoveIndex]))
+        {
+            ChessBoard->DeleteChessPiece(PromotedPawn);
+            PromotedPawn->Destroy();
+            ChessBoard->SetChessPiece(NewLocations[MoveIndex], PromotedPawns[MoveIndex]);
+            ChessBoard->ReviveChessPiece(PromotedPawns[MoveIndex]);
+        }
+    }
     //Reset castled rook if any
     if(Castled[MoveIndex] && MovedPieces[MoveIndex]->GetType() == Type::King)
     {
@@ -454,33 +466,50 @@ void AChessPlayerController::UndoMove(bool IsSimulate)
     PawnsWithEnPassant.RemoveAt(MoveIndex);
     EnPassantPawns.RemoveAt(MoveIndex);
     Castled.RemoveAt(MoveIndex);
+    PromotedPawns.RemoveAt(MoveIndex);
+    ChessBoard->PrintChessPieces();
 }
 
-void AChessPlayerController::SpawnPromotedPawn()
+void AChessPlayerController::SpawnPromotedPawn(int index)
 {
-    if(SelectedPiece)
-    {
-        FIntPoint SpawnIndex = SelectedPiece->GetCurrentPosition();
-        //Destroy Pawn
-        SelectedPiece->Destroy();
+    if(SelectedPiece) UE_LOG(LogTemp, Warning, TEXT("Selected Piece: %s"), *SelectedPiece->GetActorNameOrLabel());
+    // if(SelectedPiece)
+    // {
+        FIntPoint SpawnIndex = MovedPieces[MoveIndex-1]->GetCurrentPosition();
+        //Remove Pawn
+        ChessBoard->RemoveChessPiece(MovedPieces[MoveIndex-1]);
+        
+        FVector LocationOffset = {0, 0, 1000};
+        MovedPieces[MoveIndex-1]->SetActorLocation(MovedPieces[MoveIndex-1]->GetActorLocation() + LocationOffset);
+        
+        index = MovedPieces[MoveIndex-1]->IsWhite() ? index : index + 1;
         //Spawn chosen chess piece and set selectedpiece to chosen piece
-        SelectedPiece = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotion, ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator));
-        if(!AITurn)
+        if(ABaseChessPiece* PromotedPawn = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotionChessPieces[index], ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator)))
         {
-            BeginNextTurn();
+            PromotedPawn->SetCurrentPosition(SpawnIndex);
+            ChessBoard->AddChessPiece(PromotedPawn);
+            ChessBoard->SetChessPiece(SpawnIndex, PromotedPawn);
         }
-    }
+    // }
+    //MoveIndex++;
 }
 
 void AChessPlayerController::SpawnPromotedPawn(ABaseChessPiece* ChessPiece)
 {
     if(ChessPiece)
     {
+        bool IsWhite = ChessPiece->IsWhite();
         FIntPoint SpawnIndex = ChessPiece->GetCurrentPosition();
         //Destroy Pawn
         ChessPiece->Destroy();
         //Spawn chosen chess piece and set selectedpiece to chosen piece
-        ChessPiece = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotion, ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator));
+        int index = IsWhite ? 0 : 1;
+        if(ABaseChessPiece* PromotedPawn = Cast<ABaseChessPiece>(GetWorld()->SpawnActor<AActor>(PawnPromotionChessPieces[index], ChessBoard->GetLocation(SpawnIndex), FRotator::ZeroRotator)))
+        {
+            PromotedPawn->SetCurrentPosition(SpawnIndex);
+            ChessBoard->AddChessPiece(PromotedPawn);
+            ChessBoard->SetChessPiece(SpawnIndex, PromotedPawn);
+        }
     }
 }
 
@@ -613,12 +642,6 @@ void AChessPlayerController::GenerateMove()
     {
         UE_LOG(LogTemp, Warning, TEXT("Chosen Actor %s Chosen Index %s"), *GeneratedMove.ChessPiece->GetActorNameOrLabel(), *GeneratedMove.NewPosition.ToString());
         MakeMove(GeneratedMove.ChessPiece, GeneratedMove.NewPosition, false);
-
-        if(ShouldPromotePawn(GeneratedMove.ChessPiece))
-        {
-            SetAIPawnPromotion();
-            SpawnPromotedPawn(GeneratedMove.ChessPiece);
-        }
     }
 
     if(AIvsAI)
@@ -1138,6 +1161,17 @@ void AChessPlayerController::ResetAllEnPassant(bool IsWhite)
     }
 }
 
+void AChessPlayerController::UndoActualMove()
+{
+    if(MoveIndex > 0)
+    {
+        DeleteValidMoveSquares();
+        UndoMove(false);
+        SwitchSides();
+    }
+    
+}
+
 TArray<APawnChessPiece*> AChessPlayerController::GetPawnsWithEnPassant(bool IsWhite)
 {
     TArray<ABaseChessPiece*> ChessPieces = ChessBoard->GetChessPieces(IsWhite);
@@ -1157,11 +1191,6 @@ TArray<APawnChessPiece*> AChessPlayerController::GetPawnsWithEnPassant(bool IsWh
     return PawnsWithEnpassant;
 }
 
-void AChessPlayerController::SetPawnPromotion(TSubclassOf<ABaseChessPiece> ChosenPiece)
-{
-    PawnPromotion = ChosenPiece;
-}
-
 void AChessPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
@@ -1169,6 +1198,7 @@ void AChessPlayerController::SetupInputComponent()
     {
         EnhancedInputComponent->BindAction(SelectPieceAction, ETriggerEvent::Started, this, &AChessPlayerController::SelectPiece);
         EnhancedInputComponent->BindAction(MoveSelectedPieceAction, ETriggerEvent::Started, this, &AChessPlayerController::MoveSelectedPiece);
+        EnhancedInputComponent->BindAction(UndoMoveAction, ETriggerEvent::Started, this, &AChessPlayerController::UndoActualMove);
     }
 }
 
@@ -1192,12 +1222,6 @@ void AChessPlayerController::RandomAIMove()
             target = UKismetMathLibrary::RandomInteger64(GetValidMoves(ChosenChessPiece).Num());
             FIntPoint NewIndex = GetValidMoves(ChosenChessPiece)[target];
             MakeMove(ChosenChessPiece, NewIndex, false);
-
-            if(ShouldPromotePawn(ChosenChessPiece))
-            {
-                SetAIPawnPromotion();
-                SpawnPromotedPawn(ChosenChessPiece);
-            }
         }
     }
     AITurn = false;
