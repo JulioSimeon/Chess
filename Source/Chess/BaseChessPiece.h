@@ -76,6 +76,9 @@ public:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UCapsuleComponent* CapsuleComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* StaticMesh;
 
 	void InitializeCurrentPosition();

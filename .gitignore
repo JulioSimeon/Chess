@@ -72,3 +72,6 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+Content/Audio/Music/Il_favorito.uasset
+Content/Audio/Music/Devil_s_Trill_Sonata.uasset
+/Content/Audio/Music

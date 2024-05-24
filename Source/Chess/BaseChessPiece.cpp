@@ -2,6 +2,7 @@
 
 
 #include "BaseChessPiece.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ChessBoard.h"
 
@@ -11,8 +12,10 @@ ABaseChessPiece::ABaseChessPiece()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Component"));
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
-	RootComponent = StaticMesh;
+	StaticMesh->SetupAttachment(CapsuleComp);
+	RootComponent = CapsuleComp;
 }
 
 // Called when the game starts or when spawned

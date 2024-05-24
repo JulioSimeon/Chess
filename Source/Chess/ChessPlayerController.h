@@ -38,6 +38,9 @@ public:
 	class UInputMappingContext* DefaultMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UInputMappingContext* MoveMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UInputAction* SelectPieceAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -45,6 +48,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UInputAction* UndoMoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UInputAction* PauseGame;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -54,10 +60,19 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void PromotePawn();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void PauseChessGame();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void GameOver(bool LoserIsWhite);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DrawGame();
+
 private:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool CurrentSide;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool PlayerIsWhite;
 	//true = white / false = black
 
 	UPROPERTY(EditDefaultsOnly)
@@ -71,8 +86,11 @@ private:
 
 	class AChessGameMode* ChessGameMode;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool CoOp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool ShowPossibleMoves;
 
 	bool AITurn = false;
 
@@ -128,7 +146,7 @@ private:
 	AKingChessPiece* BlackKing;
 
 	//Move Generation
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int MinimaxDepth = 4;
 	ChessMove MinimaxRoot(int depth, bool MaximizingPlayer);
 	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta);
@@ -173,4 +191,19 @@ private:
 	class TArray<APawnChessPiece*> GetPawnsWithEnPassant(bool IsWhite);
 
 	void UndoActualMove();
+
+	//Audio
+	UPROPERTY(EditAnywhere)
+	class USoundBase* MoveSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* CaptureSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* CheckSound;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* CastlingSound;
+
+
 };
