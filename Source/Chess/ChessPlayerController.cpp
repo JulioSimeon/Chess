@@ -11,6 +11,7 @@
 #include "KingChessPiece.h"
 #include "ChessGameMode.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Camera/CameraActor.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 
 AChessPlayerController::AChessPlayerController()
@@ -21,6 +22,8 @@ AChessPlayerController::AChessPlayerController()
 void AChessPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+
+    SetCamera();
 
     if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
@@ -59,7 +62,8 @@ void AChessPlayerController::BeginPlay()
     }
     if(!CoOp && !PlayerIsWhite)
     {
-        GenerateMove();
+        GetWorldTimerManager().SetTimer(DelayTimerHandle, this, &AChessPlayerController::GenerateMove, AIRate, false);
+        //GenerateMove();
     }
     
     if(CoOp)
@@ -106,31 +110,65 @@ void AChessPlayerController::DisplayValidMoves(ABaseChessPiece* ChessPiece)
             }
         }
     }
+
+    FVector AdjustedPieceLocation = ChessBoard->GetLocation(ChessPiece->GetCurrentPosition());
+    AdjustedPieceLocation.Z = 0.f;
+    AActor* SelectedPieceSquare = GetWorld()->SpawnActor<AActor>(ValidSelectSquare, AdjustedPieceLocation, FRotator::ZeroRotator);
+    
+    if(SelectedPieceSquare)
+    {
+        ValidSquares.Emplace(SelectedPieceSquare);
+    }
+
     if(ValidMoves.Num() > 0)
     {
         for(const auto& location : ValidMoves)
         {
-            if(ChessBoard)
+            FVector AdjustedLocation = ChessBoard->GetLocation(location);
+            AdjustedLocation.Z = 0.f;
+            for(auto PastMoveSquare : PastMoveSquares)
             {
-                FVector AdjustedLocation = ChessBoard->GetLocation(location);
-                AdjustedLocation.Z = 0.f;
-                AActor* ValidSquare;
-                if(ChessBoard->GetChessPiece(location) == nullptr)
+                if(PastMoveSquare->GetActorLocation() == AdjustedLocation)
                 {
-                    ValidSquare = GetWorld()->SpawnActor<AActor>(ValidMoveSquare, AdjustedLocation, FRotator::ZeroRotator); 
+                    PastMoveSquare->SetActorLocation(PastMoveSquare->GetActorLocation() + FVector{0, 0, -1});
                 }
-                else
+            }
+            AActor* ValidSquare;
+            if(ChessBoard->GetChessPiece(location) == nullptr)
+            {
+                ValidSquare = GetWorld()->SpawnActor<AActor>(ValidMoveSquare, AdjustedLocation, FRotator::ZeroRotator); 
+            }
+            else
+            {
+                ValidSquare = GetWorld()->SpawnActor<AActor>(ValidCaptureSquare, AdjustedLocation, FRotator::ZeroRotator); 
+            }
+            if(ValidSquare)
+            {
+                ValidSquares.Emplace(ValidSquare);
+                if(!ShowPossibleMoves)
                 {
-                    ValidSquare = GetWorld()->SpawnActor<AActor>(ValidCaptureSquare, AdjustedLocation, FRotator::ZeroRotator); 
+                    ValidSquare->SetActorHiddenInGame(true);
                 }
-                if(ValidSquare)
-                {
-                    ValidSquares.Emplace(ValidSquare);
-                }
-                
             }
         }
     }
+}
+
+void AChessPlayerController::DisplayMove(FIntPoint OldIndex, FIntPoint NewIndex)
+{
+    TArray<FIntPoint> Indices = {OldIndex, NewIndex};
+    for(auto index : Indices)
+    {
+        FVector AdjustedLocation = ChessBoard->GetLocation(index);
+        AdjustedLocation.Z = 0.f;
+        AActor* PastMoveSquare = GetWorld()->SpawnActor<AActor>(ValidSelectSquare, AdjustedLocation, FRotator::ZeroRotator);
+        
+        if(PastMoveSquare)
+        {
+            PastMoveSquares.Emplace(PastMoveSquare);
+        }
+    }
+    
 }
 
 void AChessPlayerController::DeleteValidMoveSquares()
@@ -145,10 +183,23 @@ void AChessPlayerController::DeleteValidMoveSquares()
     }
 }
 
+void AChessPlayerController::DeletePastMoveSquares()
+{
+    if(PastMoveSquares.Num() > 0)
+    {
+        for(AActor* PastMoveSquare : PastMoveSquares)
+        {
+            PastMoveSquare->Destroy();
+        }
+        PastMoveSquares.Empty();
+    }
+}
+
 void AChessPlayerController::MoveSelectedPiece()
 {
     if(SelectedPiece)
     {
+        FIntPoint OriginalIndex = SelectedPiece->GetCurrentPosition();
         if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
         {
             Subsystem->RemoveMappingContext(MoveMappingContext);
@@ -173,21 +224,20 @@ void AChessPlayerController::MoveSelectedPiece()
         }
         if(ValidSquares.Find(ChosenSquare) != INDEX_NONE)
         {
-            if(ChessBoard)
+            FIntPoint index = ChessBoard->GetIndex(ChosenSquare->GetActorLocation());
+            UE_LOG(LogTemp, Display, TEXT("Index: %s"), *index.ToString());
+            if(index != SelectedPiece->GetCurrentPosition())
             {
-                FIntPoint index = ChessBoard->GetIndex(ChosenSquare->GetActorLocation());
-                UE_LOG(LogTemp, Display, TEXT("Index: %s"), *index.ToString());
-
                 if(index != FIntPoint(-1, -1))
                 {
                     MakeMove(SelectedPiece, index, false);
                 }
+
+                if(!ShouldPromotePawn(SelectedPiece))
+                {
+                    BeginNextTurn();
+                }
             }
-            if(!ShouldPromotePawn(SelectedPiece))
-            {
-                BeginNextTurn();
-            }
-            
         }
         else if(ABaseChessPiece* FriendlyPiece = Cast<ABaseChessPiece>(ChosenSquare))
         {
@@ -248,20 +298,10 @@ void AChessPlayerController::BeginNextTurn()
     else // Player vs Computer
     {
         //AI move
-        GenerateMove();
+        GetWorldTimerManager().SetTimer(DelayTimerHandle, this, &AChessPlayerController::GenerateMove, AIRate, false);
+        //GenerateMove();
         //Check if enemy side lost(human enemy)
-        if(HasEnemyLost(PlayerIsWhite))
-        {
-            //EndGame
-            GameOver(PlayerIsWhite);
-            return;
-        }
-        if(GetAllValidMoves(PlayerIsWhite).Num() == 0)
-        {
-            //draw
-            DrawGame();
-            return;
-        }
+        
     }
 }
 
@@ -299,7 +339,6 @@ bool AChessPlayerController::HasEnemyLost(bool IsWhite)
 
 void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint NewIndex, bool IsSimulate)
 {
-    bool SoundPlayed = false;
     MovedPieces.EmplaceAt(MoveIndex, ChessPiece);
     NewLocations.EmplaceAt(MoveIndex, NewIndex);
     OriginalLocations.EmplaceAt(MoveIndex, ChessPiece->GetCurrentPosition());
@@ -353,7 +392,6 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
                     if(!IsSimulate && CastlingSound)
                     {
                         UGameplayStatics::PlaySound2D(this, CastlingSound);
-                        SoundPlayed = true;
                     }
                 }
             }
@@ -372,7 +410,6 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
                     if(!IsSimulate && CastlingSound)
                     {
                         UGameplayStatics::PlaySound2D(this, CastlingSound);
-                        SoundPlayed = true;
                     }
                 }
             } 
@@ -387,13 +424,14 @@ void AChessPlayerController::MakeMove(ABaseChessPiece* ChessPiece, FIntPoint New
         if(CaptureSound && !IsSimulate)
         {
             UGameplayStatics::PlaySound2D(this, CaptureSound);
-            SoundPlayed = true;
         }
     }
     //Move SelectedPiece to chosen location
     ChessPiece->SetActorLocation(ChessBoard->GetLocation(NewIndex));
     if(!IsSimulate && MoveSound)
     {
+        DeletePastMoveSquares();
+        DisplayMove(OriginalLocations[MoveIndex], NewLocations[MoveIndex]);
         UGameplayStatics::PlaySound2D(this, MoveSound);
     }
 
@@ -585,9 +623,7 @@ ChessMove AChessPlayerController::MinimaxRoot(int depth, bool MaximizingPlayer)
 int AChessPlayerController::Minimax(int depth, bool MaximizingPlayer, int alpha, int beta)
 {
     if(depth == 0) // or game over
-    {
-        //SynchronizeChessPieces();
-        
+    {   
         return ChessBoard->Evaluate();
     }
     else if(GetAllValidMoves(true).Num() == 0)
@@ -651,29 +687,11 @@ void AChessPlayerController::GenerateMove()
     ChessMove GeneratedMove;
     if(!PlayerIsWhite)
     {
-        if(TestCursedMinimax)
-        {
-            CursedMinimax(MinimaxDepth, true, -infinity, infinity, true);
-            GeneratedMove = GeneratedMoveTemp;
-        }
-        else
-        {
-            GeneratedMove = MinimaxRoot(MinimaxDepth, true);
-        }
-        
+        GeneratedMove = MinimaxRoot(MinimaxDepth, true);
     }
     else
     {
-        if(TestCursedMinimax)
-        {
-            CursedMinimax(MinimaxDepth, false, -infinity, infinity, true);
-            GeneratedMove = GeneratedMoveTemp;
-
-        }
-        else
-        {
-            GeneratedMove = MinimaxRoot(MinimaxDepth, false);
-        }
+        GeneratedMove = MinimaxRoot(MinimaxDepth, false);
     }
     if(GeneratedMove.ChessPiece)
     {
@@ -684,6 +702,19 @@ void AChessPlayerController::GenerateMove()
     if(AIvsAI)
     {
         SwitchSides();
+    }
+
+    if(HasEnemyLost(PlayerIsWhite))
+    {
+        //EndGame
+        GameOver(PlayerIsWhite);
+        return;
+    }
+    if(GetAllValidMoves(PlayerIsWhite).Num() == 0)
+    {
+        //draw
+        DrawGame();
+        return;
     }
 }
 
@@ -934,23 +965,52 @@ TArray<ChessMove> AChessPlayerController::GetAllValidMoves(bool IsWhite)
                     {
                         int MaxX = FGenericPlatformMath::Max(EnemyChessPieceX, KingChessPieceX);
                         int MinX = FGenericPlatformMath::Min(EnemyChessPieceX, KingChessPieceX);
+                        APawnChessPiece* PinnedPawn = nullptr;
                         for(int i{MinX + 1}; i < MaxX; i++)
                         {
                             if(ABaseChessPiece* PinnedChessPiece = ChessBoard->GetChessPiece(FIntPoint(i, EnemyChessPieceY)))
                             {
                                 if(PinnedChessPiece->IsWhite() == EnemyChessPiece->IsWhite())
                                 {
+                                    if(PinnedChessPiece->GetType() == Type::Pawn)
+                                    {
+                                        if(PinnedPawn && PinnedPawn->GetEnPassantPawn() == PinnedChessPiece)
+                                        {
+                                            continue;
+                                        }
+                                        else if(APawnChessPiece* TPinnedPawn = Cast<APawnChessPiece>(ChessBoard->GetChessPiece(FIntPoint(i + 1, EnemyChessPieceY))))
+                                        {
+                                            if(TPinnedPawn->GetEnPassantPawn() == PinnedChessPiece)
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
                                     FPinnedPiece = nullptr;
+                                    PinnedPawn = nullptr;
                                     break;
                                 }
                                 else
                                 {
-                                    if(FPinnedPiece)
+                                    if(PinnedChessPiece->GetType() == Type::Pawn && !PinnedPawn && !FPinnedPiece)
+                                    {
+                                        APawnChessPiece* PawnWithEnPassant = Cast<APawnChessPiece>(PinnedChessPiece);
+                                        if(PawnWithEnPassant && PawnWithEnPassant->GetEnPassantPawn())
+                                        {
+                                            PinnedPawn = PawnWithEnPassant;
+                                            continue;
+                                        }
+                                    }
+                                    if(FPinnedPiece || PinnedPawn)
                                     {
                                         FPinnedPiece = nullptr;
+                                        PinnedPawn = nullptr;
                                         break;
                                     }
-                                    FPinnedPiece = PinnedChessPiece;
+                                    else
+                                    {
+                                        FPinnedPiece = PinnedChessPiece;
+                                    }                                         
                                 }
                             }
                         }
@@ -965,6 +1025,11 @@ TArray<ChessMove> AChessPlayerController::GetAllValidMoves(bool IsWhite)
                                 }
                             }
                             PinnedChessPieces.Emplace(FPinnedPiece);
+                        }
+                        if(PinnedPawn)
+                        {
+                           PinnedPawn->ResetEnPassant();
+                           UE_LOG(LogTemp, Warning, TEXT("Pinned Pawn found!")); 
                         }
                     }
                 }
@@ -1064,106 +1129,6 @@ bool AChessPlayerController::IsKingInCheck(bool IsWhite, TArray<FIntPoint> Enemy
     return false;
 }
 
-int AChessPlayerController::CursedMinimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst)
-{
-    ChessMove TempMove;
-    if(depth == 0) // or game over
-    {
-        
-        return ChessBoard->Evaluate();
-    }
-    if(GetAllValidMoves(true).Num() == 0)
-    {
-        return -infinity;
-    }
-    if(GetAllValidMoves(false).Num() == 0)
-    {
-        return infinity;
-    }
-
-    if(MaximizingPlayer)
-    {
-        int MaxEval = -infinity;
-        for(ChessMove& move : GetAllValidMoves(MaximizingPlayer))
-        {
-            MakeMove(move.ChessPiece, move.NewPosition, true);
-
-            int eval = CursedMinimax(depth - 1, false, alpha, beta, false);
-            MaxEval = FGenericPlatformMath::Max(MaxEval, eval);
-            alpha = FGenericPlatformMath::Max(alpha, eval);
-
-            if(eval == MaxEval)
-            {
-                TempMove.ChessPiece = move.ChessPiece;
-                TempMove.NewPosition = move.NewPosition;
-            }
-
-            UndoMove(true);
-            // if(first && depth == 3 || depth == 4)
-            // {
-            //     UE_LOG(LogTemp, Warning, TEXT("Depth: %d Move: %s to %s Eval: %d Beta: %d Alpha: %d"), depth, *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval, beta, alpha);
-            // }
-            if(beta <= alpha)
-            {
-                break;
-            }
-            if(IsFirst)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Move: %s to %s Eval: %d"), *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval);
-            }
-
-        }
-        if(IsFirst)
-        {
-            GeneratedMoveTemp = TempMove;
-        }
-        //UE_LOG(LogTemp, Display, TEXT("White Move: %s to %s Eval : %d"), *TempMove.ChessPiece->GetActorNameOrLabel(), *TempMove.NewPosition.ToString(), MaxEval);
-        return MaxEval;
-    }
-    else
-    {
-        int MinEval = infinity;
-        for(ChessMove& move : GetAllValidMoves(MaximizingPlayer))
-        {
-            MakeMove(move.ChessPiece, move.NewPosition, true);
-
-            int eval = CursedMinimax(depth - 1, true, alpha, beta, false);
-            MinEval = FGenericPlatformMath::Min(MinEval, eval);
-            beta = FGenericPlatformMath::Min(beta, eval);
-
-            if(eval == MinEval)
-            {
-                TempMove.ChessPiece = move.ChessPiece;
-                TempMove.NewPosition = move.NewPosition;
-            }
-
-            UndoMove(true);
-
-            // if(first && depth == 3 || depth == 4)
-            // {
-            //     UE_LOG(LogTemp, Warning, TEXT("Depth: %d Move: %s to %s Eval: %d Beta: %d Alpha: %d"), depth, *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval, beta, alpha);
-            // }
-
-            if(beta <= alpha)
-            {
-                break;
-            }
-            if(IsFirst)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("%s : %s eval: %d"), *move.ChessPiece->GetActorNameOrLabel(), *move.NewPosition.ToString(), eval);
-            }
-        }
-        if(IsFirst)
-        {
-            first = false;
-            UE_LOG(LogTemp, Warning, TEXT("I Was Called Properly"));
-            GeneratedMoveTemp = TempMove;
-        }
-        //UE_LOG(LogTemp, Display, TEXT("Black Move: %s to %s Eval : %d"), *TempMove.ChessPiece->GetActorNameOrLabel(), *TempMove.NewPosition.ToString(), MinEval);
-        return MinEval;
-    }
-}
-
 int AChessPlayerController::MoveGenerationTest(int depth, bool IsWhite)
 {
     if(depth == 1)
@@ -1219,6 +1184,16 @@ void AChessPlayerController::UndoActualMove()
     
 }
 
+void AChessPlayerController::SetCamera()
+{
+    TArray<AActor*> Cameras;
+    UGameplayStatics::GetAllActorsOfClass(this, ACameraActor::StaticClass(), Cameras);
+    if(Cameras.Num() > 0 && Cameras[0])
+    {
+        SetViewTarget(Cameras[0]);
+    }
+}
+
 TArray<APawnChessPiece*> AChessPlayerController::GetPawnsWithEnPassant(bool IsWhite)
 {
     TArray<ABaseChessPiece*> ChessPieces = ChessBoard->GetChessPieces(IsWhite);
@@ -1247,63 +1222,5 @@ void AChessPlayerController::SetupInputComponent()
         EnhancedInputComponent->BindAction(MoveSelectedPieceAction, ETriggerEvent::Started, this, &AChessPlayerController::MoveSelectedPiece);
         EnhancedInputComponent->BindAction(UndoMoveAction, ETriggerEvent::Started, this, &AChessPlayerController::UndoActualMove);
         EnhancedInputComponent->BindAction(PauseGame, ETriggerEvent::Started, this, &AChessPlayerController::PauseChessGame);
-    }
-}
-
-void AChessPlayerController::RandomAIMove()
-{
-    AITurn = true;
-    TArray<ABaseChessPiece*> EnemyPieces = ChessBoard->GetChessPieces(PlayerIsWhite);
-    TArray<ABaseChessPiece*> EnemyPiecesWithValidMoves;
-    for(auto enemy : EnemyPieces)
-    {
-        if(GetValidMoves(enemy).Num() > 0)
-        {
-            EnemyPiecesWithValidMoves.Emplace(enemy);
-        } 
-    }
-    if(EnemyPiecesWithValidMoves.Num() > 0)
-    {
-        int target = UKismetMathLibrary::RandomInteger64(EnemyPiecesWithValidMoves.Num());
-        if(ABaseChessPiece* ChosenChessPiece = EnemyPiecesWithValidMoves[target])
-        {
-            target = UKismetMathLibrary::RandomInteger64(GetValidMoves(ChosenChessPiece).Num());
-            FIntPoint NewIndex = GetValidMoves(ChosenChessPiece)[target];
-            MakeMove(ChosenChessPiece, NewIndex, false);
-        }
-    }
-    AITurn = false;
-
-    if(AIvsAI)
-    {
-        SwitchSides();
-    }
-}
-
-void AChessPlayerController::SynchronizeChessPieces() const
-{
-    TArray<AActor*> ChessPieces;
-    TArray<FIntPoint> ChessPiecesLocations;
-    UGameplayStatics::GetAllActorsOfClass(this, ABaseChessPiece::StaticClass(), ChessPieces);
-    for(AActor* piece : ChessPieces)
-    {
-        if(ABaseChessPiece* ChessPiece = Cast<ABaseChessPiece>(piece))
-        {
-            ChessPiece->SynchronizePosition();
-            ChessPiecesLocations.Emplace(ChessPiece->GetCurrentPosition());
-        }
-    }
-    if(ChessBoard)
-    {
-        for(int i{}; i < AChessBoard::BoardHeight; i++)
-        {
-            for(int j{}; j < AChessBoard::BoardLength; j++)
-            {
-                if(!ChessPiecesLocations.Contains(FIntPoint(i, j)))
-                {
-                    ChessBoard->SetChessPiece(FIntPoint(i, j), nullptr);
-                }
-            }
-        }
     }
 }

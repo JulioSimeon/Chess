@@ -69,41 +69,48 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DrawGame();
 
-private:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool PlayerIsWhite;
-	//true = white / false = black
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool CoOp;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AActor> ValidCaptureSquare;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool ShowPossibleMoves;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool PlayerIsWhite;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	int MinimaxDepth = 4;
+
+private:
 
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABaseChessPiece>> PawnPromotionChessPieces;
 
 	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AActor> ValidCaptureSquare;
+
+	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> ValidMoveSquare;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AActor> ValidSelectSquare;
+
 	class AChessGameMode* ChessGameMode;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool CoOp;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool ShowPossibleMoves;
-
-	bool AITurn = false;
 
 	class ABaseChessPiece* SelectedPiece;
 
 	TArray<AActor*> ValidSquares;
+
+	TArray<AActor*> PastMoveSquares;
 
 	class AChessBoard* ChessBoard;
 
 	void SelectPiece();
 	void MoveSelectedPiece();
 	void DisplayValidMoves(ABaseChessPiece* ChessPiece);
+	void DisplayMove(FIntPoint OldIndex, FIntPoint NewIndex);
 	void DeleteValidMoveSquares();
+	void DeletePastMoveSquares();
 	void SwitchSides();
 	void BeginNextTurn();
 	bool ShouldPromotePawn(ABaseChessPiece* ChessPiece);
@@ -146,16 +153,11 @@ private:
 	AKingChessPiece* BlackKing;
 
 	//Move Generation
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	int MinimaxDepth = 4;
+
 	ChessMove MinimaxRoot(int depth, bool MaximizingPlayer);
 	int Minimax(int depth, bool MaximizingPlayer, int alpha, int beta);
-	void RandomAIMove();
 	void GenerateMove();
 	const int infinity = 10000;
-	
-	
-	void SynchronizeChessPieces() const;
 
 	TArray<ChessMove> GetAllValidMoves(bool IsWhite);
 
@@ -166,6 +168,7 @@ private:
 	bool AIvsAI;
 	UPROPERTY(EditAnywhere)
 	float AIRate;
+	FTimerHandle DelayTimerHandle;
 	FTimerHandle AIvsAITimerHandle;
 
 	//GettingValidMoves
@@ -176,11 +179,6 @@ private:
 	ABaseChessPiece* KingChecker;
 
 	//Temp
-	int CursedMinimax(int depth, bool MaximizingPlayer, int alpha, int beta, bool IsFirst);
-	ChessMove GeneratedMoveTemp;
-	bool first = true;
-	UPROPERTY(EditAnywhere)
-	bool TestCursedMinimax;
 	int MoveGenerationTest(int depth, bool White);
 	UPROPERTY(EditAnywhere)
 	int MoveGenerationTestDepth;
@@ -205,5 +203,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundBase* CastlingSound;
 
-
+	void SetCamera();
 };
