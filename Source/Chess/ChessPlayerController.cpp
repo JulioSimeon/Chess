@@ -23,7 +23,8 @@ void AChessPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    SetCamera();
+    InitializeCameras();
+    SetViewTarget(WhiteCamera);
 
     if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
@@ -63,6 +64,7 @@ void AChessPlayerController::BeginPlay()
     if(!CoOp && !PlayerIsWhite)
     {
         GetWorldTimerManager().SetTimer(DelayTimerHandle, this, &AChessPlayerController::GenerateMove, AIRate, false);
+        SetViewTarget(BlackCamera);
         //GenerateMove();
     }
     
@@ -271,6 +273,7 @@ TArray<FIntPoint> AChessPlayerController::GetValidMoves(ABaseChessPiece* ChessPi
 void AChessPlayerController::SwitchSides()
 {
     PlayerIsWhite = !PlayerIsWhite;
+    PlayerIsWhite ? SetViewTarget(WhiteCamera) : SetViewTarget(BlackCamera);
 }
 
 void AChessPlayerController::BeginNextTurn()
@@ -1184,13 +1187,15 @@ void AChessPlayerController::UndoActualMove()
     
 }
 
-void AChessPlayerController::SetCamera()
+void AChessPlayerController::InitializeCameras()
 {
-    TArray<AActor*> Cameras;
     UGameplayStatics::GetAllActorsOfClass(this, ACameraActor::StaticClass(), Cameras);
-    if(Cameras.Num() > 0 && Cameras[0])
+    if(Cameras.Num() == 2)
     {
-        SetViewTarget(Cameras[0]);
+        for(auto camera : Cameras)
+        {
+            camera->ActorHasTag("White") ? WhiteCamera = camera : BlackCamera = camera;
+        }
     }
 }
 

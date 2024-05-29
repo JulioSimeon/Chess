@@ -203,5 +203,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundBase* CastlingSound;
 
-	void SetCamera();
+	void InitializeCameras();
+	TArray<AActor*> Cameras;
+	AActor* WhiteCamera;
+	AActor* BlackCamera;
 };
